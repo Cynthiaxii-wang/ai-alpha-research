@@ -30,8 +30,7 @@ web/
   src/styles.css          原有视觉样式
   public/data/dashboard.json  Python 导出的研究快照
   public/favicon.svg
-  next.config.mjs         standalone 构建配置
-  scripts/start.mjs       补齐静态资源并启动 standalone 服务
+  next.config.mjs         原生 Next.js 配置
   Dockerfile
 ```
 
@@ -49,11 +48,15 @@ Python 的 `src/`、`scripts/`、`config/`、`data/` 保留在项目根目录。
 - Output Directory：使用 Next.js 默认值，不填写 `dist` 或 `out`
 - Environment Variables：当前网站无需配置；根目录 `.env` 仅供本地 Python 采集使用
 
+使用原生 `next build`，不设置 `output`、`outputFileTracingRoot` 或自定义适配器，不复制或伪造 tracing 文件。Vercel 自行处理 Next.js 构建产物，不使用本地 `start` 命令或 Dockerfile。
+
+从旧 standalone 配置迁移后，首次 Redeploy 请关闭构建缓存；Output Directory 保持默认，勿设置为 `.next/standalone`。
+
 每次更新 `public/data/dashboard.json` 后重新部署。当前应用没有登录系统；需要内部访问时，应在托管平台或反向代理配置访问控制。
 
-## Node.js / Docker
+## Node.js / 可选 Docker
 
-普通 Node.js 主机：在 `web/` 执行 `npm ci`、`npm run build`、`npm run start`，通过进程管理器运行并配置 HTTPS 反向代理。启动脚本自动将 `public/` 和 `.next/static/` 复制到 standalone 目录，可通过 `PORT` 和 `HOSTNAME` 环境变量调整监听地址（默认 `0.0.0.0:3000`）。
+普通 Node.js 主机：在 `web/` 执行 `npm ci`、`npm run build`、`npm run start`，通过进程管理器运行并配置 HTTPS 反向代理。`start` 使用原生 `next start`，默认监听 `0.0.0.0:3000`。可用 `PORT` 环境变量调整端口，用 `npm run start -- --hostname 127.0.0.1` 调整监听地址。开发命令 `npm run dev` 保持不变。
 
 Docker 在项目根目录构建，构建上下文必须为 `web/`：
 
@@ -62,9 +65,7 @@ docker build -t ai-alpha-research ./web
 docker run --rm -p 3000:3000 --name ai-alpha-research ai-alpha-research
 ```
 
-镜像使用非 root 用户，包含 standalone 服务、静态资源和研究 JSON。无需挂载项目根目录或 `.env`。
-
-如手动搬运 standalone 产物，需要同时复制 `web/public` 到产物中的 `public`，以及 `web/.next/static` 到产物中的 `.next/static`，再运行 `node server.js`。Dockerfile 已包含这些步骤。
+Docker 不是 Vercel 部署的前提。可选镜像使用非 root 用户，包含标准 `.next` 产物、Node.js 依赖、静态资源和研究 JSON，通过 `next start` 启动。无需挂载项目根目录或 `.env`。
 
 ## 数据更新与发布范围
 
@@ -79,4 +80,4 @@ npm run build
 
 项目已有 `scripts/audit_public_release.py` 将研究数据标记为 `blocked_for_public_redistribution`，记录了 Massive 数据及工作簿来源数据的公开展示授权要求。技术部署配置已就绪，但该迁移不改变既有数据发布状态；公开发布前需完成原有审核，或换用允许公开展示的数据。
 
-Next.js 官方参考：[部署](https://nextjs.org/docs/app/getting-started/deploying)、[standalone 输出](https://nextjs.org/docs/app/api-reference/config/next-config-js/output)。
+Next.js 官方参考：[部署](https://nextjs.org/docs/app/getting-started/deploying)。

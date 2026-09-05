@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "node scripts/start.mjs",
+    "start": "next start",
     "preview": "npm run start"
   },
   "dependencies": {
