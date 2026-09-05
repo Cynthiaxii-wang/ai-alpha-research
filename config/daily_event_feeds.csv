@@ -1,0 +1,5 @@
+source_name,source_tier,feed_url,default_tickers
+OpenAI,A,https://openai.com/news/rss.xml,MSFT
+Google Blog,A,https://blog.google/rss/,GOOGL
+Microsoft Blog,A,https://blogs.microsoft.com/feed/,MSFT
+NVIDIA Newsroom,A,https://nvidianews.nvidia.com/releases.xml,NVDA

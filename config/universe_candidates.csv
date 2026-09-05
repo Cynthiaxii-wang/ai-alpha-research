@@ -1,0 +1,21 @@
+ticker,company_name,value_chain_bucket,product_focus,github_owner,huggingface_author,include_in_research
+NVDA,NVIDIA,compute,AI accelerators and software,NVIDIA,nvidia,true
+AMD,Advanced Micro Devices,compute,AI accelerators and CPUs,ROCm,amd,true
+AVGO,Broadcom,semiconductor_networking,AI networking and custom silicon,broadcom,,true
+TSM,Taiwan Semiconductor Manufacturing,foundry,Advanced-node semiconductor manufacturing,,,true
+MU,Micron Technology,memory,High-bandwidth memory,micron,,true
+ANET,Arista Networks,networking,AI data-center networking,aristanetworks,,true
+MSFT,Microsoft,cloud_platform,Azure AI and enterprise software,microsoft,microsoft,true
+GOOGL,Alphabet,cloud_model_platform,Google Cloud and foundation models,google,google,true
+AMZN,Amazon,cloud_platform,AWS AI infrastructure and services,aws,amazon,true
+ORCL,Oracle,cloud_platform,Cloud infrastructure and enterprise data,oracle,oracle,true
+META,Meta Platforms,model_application,Open models and consumer AI,facebookresearch,meta-llama,true
+PLTR,Palantir Technologies,enterprise_application,Enterprise AI platforms,palantir,,true
+CRM,Salesforce,enterprise_application,Enterprise agents and CRM AI,salesforce,Salesforce,true
+NOW,ServiceNow,enterprise_application,Enterprise workflow AI,ServiceNow,,true
+ADBE,Adobe,enterprise_application,Creative and document AI,adobe,adobe,true
+SNOW,Snowflake,data_platform,Cloud data and AI platform,snowflakedb,Snowflake,true
+NET,Cloudflare,developer_infrastructure,Edge compute and AI inference,cloudflare,cloudflare,true
+DDOG,Datadog,developer_infrastructure,Cloud observability and AI operations,DataDog,datadog,true
+MDB,MongoDB,data_platform,Developer data platform,mongodb,mongodb,true
+ESTC,Elastic,data_platform,Search observability and AI applications,elastic,elastic,true

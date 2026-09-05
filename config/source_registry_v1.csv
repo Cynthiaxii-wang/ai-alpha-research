@@ -1,0 +1,11 @@
+source_id,source_name,source_tier,access_mode,cost,authentication,base_url,historical_coverage,pit_history,reliability_status,primary_use,key_limitation
+manual_tracking_workbook,AI Tracking Workbook,C,manual_snapshot,internal,local_file,n/a,mixed_2020_to_2026,no,conditional,AI-native alternative-data candidates,source units and original publication timestamps are incomplete for several sheets
+sec_edgar,SEC EDGAR,A,api,free,user_agent,https://data.sec.gov,filing_history,yes,primary,fundamentals filings guidance,custom XBRL tags require normalization
+massive,Massive Stocks,B,api,free_tier,api_key,https://api.massive.com,rolling_two_years,market_timestamped,primary,adjusted OHLCV and security reference,free history may not cover early 2024
+alpha_vantage,Alpha Vantage,D,api,free_tier,api_key,https://www.alphavantage.co,endpoint_dependent,uncertain,backup,earnings surprise and market cross-check,25 calls per day and some premium endpoints
+github,GitHub,B,api,free,token,https://api.github.com,repository_history,partial,primary,developer adoption and release activity,current counts require snapshots and traffic is owner-only
+huggingface,Hugging Face Hub,B,api,free,token,https://huggingface.co,repository_history,partial,primary,model adoption metadata and downloads,current download counts require snapshots
+openrouter,OpenRouter,D,api,free,api_key,https://openrouter.ai,current_catalog,no,secondary,model catalog pricing context and performance,third-party aggregation and no PIT price history
+openrouter_rankings,OpenRouter Rankings,B,api,free,api_key,https://openrouter.ai/api/v1/datasets/rankings-daily,from_2025_01_01,yes,conditional,model and provider adoption proxy,OpenRouter traffic only and token units differ across providers
+cloudflare_radar,Cloudflare Radar,B,api,free,read_only_token,https://api.cloudflare.com/client/v4/radar,current_plus_daily_snapshots,partial,conditional,AI product web-attention proxy,DNS-based rank buckets are not users revenue or paid adoption
+company_ir,Company Investor Relations,A,manual_or_scrape,free,none,company_specific,filing_history,yes,primary,AI monetization capex and guidance disclosure,company-specific parsing and terminology

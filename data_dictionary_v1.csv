@@ -1,0 +1,131 @@
+field_name,table_name,description,datatype,frequency,source_type,historical_available,period_end,available_date/as_of_date,update_rule,factor_hypothesis,MVP_priority
+company_id,company_master,公司稳定内部标识,UUID,static,internal_master,full,n/a,created_at,insert once; merge aliases only,all hypotheses require stable entity mapping,P0
+legal_name,company_master,公司法定名称,TEXT,event_driven,company_filing,full,n/a,updated_at,type-2 history through company_alias when renamed,entity reference only,P0
+common_name,company_master,常用公司名称,TEXT,event_driven,internal_master,full,n/a,updated_at,update on verified rename,entity reference only,P0
+country_code,company_master,注册国家 ISO-3166-1 alpha-2,CHAR(2),event_driven,company_filing,full,n/a,updated_at,update on domicile change,country neutralization and policy exposure,P1
+gics_industry,company_master,GICS 或内部统一行业,TEXT,quarterly,vendor_classification,partial,n/a,updated_at,version changes; never overwrite classification history,industry neutral return,P0
+ai_value_chain_bucket,company_master,Compute Cloud Model Tool Application Data Power 分类,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,analyst-reviewed taxonomy,supply-chain and peer comparison,P0
+primary_stage,company_master,AI产业链一级环节 upstream midstream downstream,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,analyst-reviewed three-stage taxonomy,within-stage comparison and transmission tests,P0
+secondary_segment,company_master,一级环节下的细分业务环节,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,analyst-reviewed segment taxonomy,segment-specific KPI and peer comparison,P0
+secondary_exposure,company_master,公司除主要环节外的次要AI业务暴露,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,review after filings and product changes,cross-stage exposure analysis,P1
+upstream_dependencies,company_master,影响该公司AI业务的主要上游依赖,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,review after supply or platform changes,value-chain transmission mapping,P1
+downstream_customers,company_master,该公司AI业务的主要下游客户类别,TEXT,quarterly,internal_research,from_2024,n/a,updated_at,review after customer or channel changes,demand validation mapping,P1
+security_id,security_master,证券稳定内部标识,UUID,static,internal_master,full,n/a,created_at,insert once,security-level return mapping,P0
+company_id,security_master,证券所属公司,UUID,static,internal_master,full,n/a,created_at,foreign key to company_master,all company-security joins,P0
+ticker,security_master,交易代码,TEXT,event_driven,exchange_reference,full,n/a,valid_from,ticker changes create new effective-dated row,market data join,P0
+exchange_mic,security_master,交易所 MIC,TEXT,event_driven,exchange_reference,full,n/a,valid_from,effective-dated,calendar and currency alignment,P0
+currency,security_master,交易币种,CHAR(3),event_driven,exchange_reference,full,n/a,valid_from,effective-dated,FX-neutral comparison,P1
+valid_from,security_master,证券映射生效日,DATE,event_driven,internal_master,full,n/a,valid_from,part of temporal uniqueness,prevent identifier look-ahead,P0
+valid_to,security_master,证券映射失效日,DATE,event_driven,internal_master,full,n/a,valid_to,null means active,prevent stale ticker joins,P0
+trade_date,market_daily,交易日期,DATE,daily,market_vendor,full,trade_date,available_at,one row per security-date-version,all return labels and market features,P0
+close_price,market_daily,未复权收盘价,NUMERIC(20 6),daily,market_vendor,full,trade_date,available_at,append correction version; no overwrite,price reference,P0
+adjusted_close,market_daily,含拆股分红调整的收盘价,NUMERIC(20 6),daily,market_vendor,full,trade_date,available_at,store adjustment version,total return and target calculation,P0
+volume,market_daily,成交量,NUMERIC(24 4),daily,market_vendor,full,trade_date,available_at,append correction version,liquidity and abnormal volume,P0
+market_cap,market_daily,收盘时点总市值,NUMERIC(24 4),daily,market_vendor,full,trade_date,available_at,recompute after shares correction,size neutralization,P0
+free_float_market_cap,market_daily,自由流通市值,NUMERIC(24 4),daily,market_vendor,partial,trade_date,available_at,append vendor revision,capacity and crowding control,P1
+realized_vol_20d,market_daily,过去20交易日实现波动率,NUMERIC(18 8),daily,derived_market,derived,trade_date,feature_as_of_date,recompute from PIT adjusted prices,risk control and future volatility baseline,P1
+beta_252d,market_daily,对基准过去252日滚动 Beta,NUMERIC(18 8),daily,derived_market,derived,trade_date,feature_as_of_date,recompute with stated benchmark,excess and residual return,P1
+metric_name,fundamental_observation,标准财务指标名如 revenue fcf capex gross_margin,TEXT,quarterly,company_filing_or_vendor,full,fiscal_period_end,available_at,append every filing/restatement version,H2 and H3 raw fundamentals,P0
+metric_value,fundamental_observation,财务指标数值,NUMERIC(28 8),quarterly,company_filing_or_vendor,full,fiscal_period_end,available_at,never overwrite; newest known version selected by as-of join,H2 conversion and H3 improvement,P0
+fiscal_period_end,fundamental_observation,财务指标所属期末,DATE,quarterly,company_filing_or_vendor,full,fiscal_period_end,available_at,immutable economic period,align YoY and QoQ without look-ahead,P0
+fiscal_period_type,fundamental_observation,FQ FY TTM 类型,TEXT,quarterly,company_filing_or_vendor,full,fiscal_period_end,available_at,validate against allowed values,correct comparable-period construction,P0
+filing_date,fundamental_observation,监管披露或正式公告日期,DATE,quarterly,regulatory_filing,full,fiscal_period_end,available_at,retain original and amendment dates,earnings event alignment,P0
+available_at,fundamental_observation,数据对市场首次可见时间,TIMESTAMPTZ,event_driven,ingestion_metadata,full,fiscal_period_end,available_at,set from release timestamp; conservative next-open if time missing,hard anti-look-ahead constraint,P0
+revision_seq,fundamental_observation,同一公司期间指标的版本序号,INTEGER,event_driven,ingestion_metadata,derived,fiscal_period_end,available_at,monotonic per natural key,restatement-aware backtest,P0
+estimate_metric,estimate_observation,一致预期指标如 revenue eps capex fcf,TEXT,daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,append daily snapshot,H1 revision and H3 earnings revision,P0
+estimate_mean,estimate_observation,分析师预测均值,NUMERIC(28 8),daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,append snapshot; no forward overwrite,H1 and H3 revision level,P0
+estimate_median,estimate_observation,分析师预测中位数,NUMERIC(28 8),daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,append snapshot,robust revision signal,P1
+estimate_stddev,estimate_observation,分析师预测标准差,NUMERIC(28 8),daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,append snapshot,forecast dispersion and uncertainty,P1
+analyst_count,estimate_observation,参与一致预期的分析师数量,INTEGER,daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,append snapshot,estimate confidence and coverage control,P1
+forecast_period_end,estimate_observation,预测对应财务期间末,DATE,daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,immutable forecast horizon,avoid mixing FY1 FY2 and quarter estimates,P0
+as_of_date,estimate_observation,该预测快照在市场可获得的日期,DATE,daily,estimate_vendor,license_dependent,forecast_period_end,as_of_date,daily append-only snapshot,hard anti-look-ahead constraint,P0
+product_id,product_master,AI 产品或开发者生态稳定标识,UUID,static,internal_master,from_2024,n/a,created_at,insert once,H1 product-company mapping,P0
+company_id,product_master,产品所属公司,UUID,event_driven,official_product_info,from_2024,n/a,valid_from,effective-dated ownership,H1 and supply-chain attribution,P0
+product_type,product_master,web app mobile app API developer tool model hub 分类,TEXT,event_driven,internal_research,from_2024,n/a,updated_at,controlled taxonomy,separate adoption mechanisms,P0
+metric_name,product_observation,标准产品指标如 visits mau downloads ranking api_calls,TEXT,daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,append source snapshot,H1 product adoption leading revisions,P0
+metric_value,product_observation,产品指标原始数值,NUMERIC(28 8),daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,retain raw value and source version,H1 adoption level and growth,P0
+observation_start,product_observation,指标覆盖区间起点,DATE,daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,immutable,proper period alignment,P0
+observation_end,product_observation,指标覆盖区间终点,DATE,daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,immutable,proper period alignment,P0
+geo_code,product_observation,产品数据地域范围,TEXT,daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,use GLOBAL or ISO code,regional demand exposure,P1
+coverage_ratio,product_observation,供应商样本覆盖率或估算置信度,NUMERIC(8 6),daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,store with each observation,control vendor sampling changes,P0
+available_at,product_observation,该批产品数据首次可用于研究的时间,TIMESTAMPTZ,daily_or_weekly,ingestion_metadata,full,observation_end,available_at,use vendor publication timestamp not observation end,hard anti-look-ahead constraint,P0
+source_version,product_observation,供应商快照或方法版本,TEXT,daily_or_weekly,alternative_data_vendor,source_dependent,observation_end,available_at,new version on methodology/backfill change,avoid false signals from vendor revisions,P0
+ai_entity_id,ai_entity_master,模型 API 代码库或开发者组织的稳定标识,UUID,static,internal_master,from_2024,n/a,created_at,insert once,H1 developer and model entity mapping,P0
+company_id,ai_entity_master,AI 实体归属公司,UUID,event_driven,official_product_info,from_2024,n/a,valid_from,effective-dated ownership,aggregate native AI signals to company,P0
+product_id,ai_entity_master,AI 实体关联产品,UUID,event_driven,internal_master,from_2024,n/a,valid_from,nullable effective-dated link,connect model or repository to product adoption,P1
+entity_type,ai_entity_master,model api repository organization dataset 分类,TEXT,event_driven,internal_master,from_2024,n/a,valid_from,controlled taxonomy,separate adoption mechanisms,P0
+metric_name,ai_metric_observation,AI-native 指标如 github_stars hf_downloads api_input_price model_score,TEXT,daily_or_weekly,official_api_or_developer_platform,from_2024,observation_end,available_at,append raw observation,H1 developer adoption and model economics,P0
+metric_value,ai_metric_observation,AI-native 指标原始值,NUMERIC(28 8),daily_or_weekly,official_api_or_developer_platform,from_2024,observation_end,available_at,append; never replace historical snapshot,H1 adoption and AI economics,P0
+ai_entity_id,ai_metric_observation,指标所属 AI 实体标识,UUID,daily_or_weekly,internal_master,from_2024,observation_end,available_at,foreign key to ai_entity_master,correct aggregation to company,P0
+unit,ai_metric_observation,USD_per_million_tokens count score latency_ms 等,TEXT,daily_or_weekly,official_api_or_developer_platform,from_2024,observation_end,available_at,unit changes create new metric definition,comparable model/API economics,P0
+benchmark_name,ai_metric_observation,模型能力指标对应 benchmark,TEXT,event_driven,official_or_third_party_benchmark,from_2024,observation_end,available_at,null for non-benchmark metrics,avoid invalid score aggregation,P1
+measurement_method,ai_metric_observation,采集方式和口径版本,TEXT,daily_or_weekly,ingestion_metadata,from_2024,observation_end,available_at,required when methodology can change,robustness and data quality control,P0
+available_at,ai_metric_observation,AI 指标首次公开或抓取可得时间,TIMESTAMPTZ,daily_or_weekly,ingestion_metadata,full,observation_end,available_at,store source publish time and ingestion time,hard anti-look-ahead constraint,P0
+metric_name,valuation_observation,估值指标如 forward_pe ev_sales fcf_yield,TEXT,daily,market_or_estimate_vendor,full,trade_date,available_at,append daily snapshot,H3 valuation not overheated,P0
+metric_value,valuation_observation,估值指标数值,NUMERIC(28 8),daily,market_or_estimate_vendor,full,trade_date,available_at,compute from same-day price and PIT denominator,H3 valuation state,P0
+denominator_period,valuation_observation,估值分母对应 TTM FY1 FY2 等,TEXT,daily,market_or_estimate_vendor,full,trade_date,available_at,required for forward metrics,prevent horizon mixing,P0
+trade_date,valuation_observation,估值观察交易日,DATE,daily,market_or_estimate_vendor,full,trade_date,available_at,one value per security metric date version,H3 timing alignment,P0
+available_at,valuation_observation,估值快照可用时间,TIMESTAMPTZ,daily,ingestion_metadata,full,trade_date,available_at,after market close or next decision timestamp,hard anti-look-ahead constraint,P0
+supplier_company_id,supply_chain_relationship,供应方公司,UUID,event_driven,company_disclosure_or_research,partial,valid_from,available_at,append relationship version,supply-chain transmission,P1
+customer_company_id,supply_chain_relationship,客户方公司,UUID,event_driven,company_disclosure_or_research,partial,valid_from,available_at,append relationship version,supply-chain transmission,P1
+relationship_type,supply_chain_relationship,supplies_chip cloud_provider model_provider customer 等,TEXT,event_driven,internal_research,partial,valid_from,available_at,controlled taxonomy,supply-chain transmission,P1
+exposure_weight,supply_chain_relationship,收入或采购暴露估计比例,NUMERIC(10 6),quarterly,company_disclosure_or_research,partial,valid_from,available_at,version estimate with confidence,weighted transmission signal,P2
+confidence_score,supply_chain_relationship,关系真实性和权重可信度 0 到 1,NUMERIC(8 6),event_driven,internal_research,from_2024,valid_from,available_at,analyst-reviewed change log,control noisy relationship inference,P1
+valid_from,supply_chain_relationship,关系经济生效时间,DATE,event_driven,company_disclosure_or_research,partial,valid_from,available_at,effective-dated,prevent current network leaking backward,P1
+valid_to,supply_chain_relationship,关系失效时间,DATE,event_driven,company_disclosure_or_research,partial,valid_to,available_at,null means active,prevent stale transmission,P1
+available_at,supply_chain_relationship,该关系被市场知晓的时间,TIMESTAMPTZ,event_driven,ingestion_metadata,full,valid_from,available_at,may differ from valid_from,hard anti-look-ahead constraint,P1
+event_id,event_observation,事件稳定标识,UUID,event_driven,internal_master,from_2024,event_time,available_at,deduplicate by source fingerprint,event study and catalyst control,P1
+event_type,event_observation,earnings model_launch pricing policy order outage 等,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,controlled taxonomy,event-conditioned factor tests,P1
+event_time,event_observation,事件实际发生或发布时刻,TIMESTAMPTZ,event_driven,news_filing_official,from_2024,event_time,available_at,preserve timezone and precision,event-window alignment,P1
+available_at,event_observation,研究系统可确认事件的最早时刻,TIMESTAMPTZ,event_driven,ingestion_metadata,full,event_time,available_at,max of public release and ingestion validation,hard anti-look-ahead constraint,P1
+headline,event_observation,事件短标题,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,store canonical summary,event audit trail,P1
+source_url,event_observation,原始来源链接,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,immutable source reference,evidence traceability,P1
+novelty_score,event_observation,与过去事件相似度反向得到的新颖度,NUMERIC(8 6),event_driven,derived_text,derived,event_time,feature_as_of_date,version model and corpus,event significance candidate,P2
+sentiment_score,event_observation,文本方向性而非投资建议,NUMERIC(8 6),event_driven,derived_text,derived,event_time,feature_as_of_date,version model and prompt,event-conditioned return candidate,P2
+feature_date,feature_store,特征用于决策的交易日期,DATE,daily,derived,derived,source_period_end,as_of_date,materialize only from data available by cutoff,all hypotheses,P0
+security_id,feature_store,特征所属证券,UUID,daily,derived,derived,source_period_end,as_of_date,foreign key to security master,cross-sectional comparison,P0
+feature_name,feature_store,版本化特征名,TEXT,daily,derived,derived,source_period_end,as_of_date,append by feature version; never overwrite,all hypotheses,P0
+feature_value,feature_store,特征数值,NUMERIC(28 10),daily,derived,derived,source_period_end,as_of_date,rebuild reproducibly from lineage,H1 H2 H3 testing,P0
+feature_version,feature_store,特征定义和代码版本,TEXT,daily,derived,derived,source_period_end,as_of_date,required in primary key,reproducible factor research,P0
+source_max_available_at,feature_store,参与计算的最新源数据可用时刻,TIMESTAMPTZ,daily,derived,derived,source_period_end,as_of_date,must be no later than decision cutoff,automatic look-ahead audit,P0
+lineage_run_id,feature_store,特征生成任务标识,UUID,daily,derived,derived,source_period_end,as_of_date,foreign key to research_run,reproduction and debugging,P0
+target_date,targets,信号形成交易日,DATE,daily,derived_market,derived,target_date,computed_at,align with exchange calendar,all supervised tests,P0
+ret_1d,targets,从信号日可交易价格起算未来1交易日总收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,recompute on corporate-action revision,short-horizon diagnostics,P1
+ret_5d,targets,未来5交易日总收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,recompute on corporate-action revision,H1 short lead-lag diagnostics,P0
+ret_20d,targets,未来20交易日总收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,recompute on corporate-action revision,H3 primary label,P0
+ret_60d,targets,未来60交易日总收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,recompute on corporate-action revision,H2 and H3 medium-horizon label,P0
+excess_return_20d,targets,未来20日相对指定基准的超额收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,store benchmark_id and target version,H1 and H3 primary alpha label,P0
+excess_return_60d,targets,未来60日相对指定基准的超额收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,store benchmark_id and target version,H2 and H3 medium alpha label,P0
+industry_neutral_return_20d,targets,未来20日剔除行业收益后的残差收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,version industry mapping and neutralization model,H1 and H3 cross-sectional label,P0
+industry_neutral_return_60d,targets,未来60日剔除行业收益后的残差收益,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,version industry mapping and neutralization model,H2 and H3 cross-sectional label,P0
+future_vol_20d,targets,未来20交易日实现波动率,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,annualization convention versioned,risk and volatility prediction,P1
+future_max_drawdown_20d,targets,未来20交易日路径最大回撤,NUMERIC(18 10),daily,derived_market,derived,future_trade_date,computed_at,use daily adjusted close path,tail-risk evaluation,P1
+benchmark_id,targets,超额收益使用的可交易基准证券或 ETF,UUID,daily,internal_master,derived,target_date,computed_at,required for excess labels,reproducible alpha definition,P0
+target_version,targets,收益起点终点和中性化规则版本,TEXT,daily,derived_market,derived,target_date,computed_at,part of primary key,reproducible label construction,P0
+computed_at,targets,标签实际计算时间,TIMESTAMPTZ,daily,ingestion_metadata,full,future_trade_date,computed_at,only populate after full horizon exists,prevent incomplete-label contamination,P0
+run_id,research_run,数据或特征构建任务标识,UUID,event_driven,internal_system,full,n/a,started_at,insert per run,reproducibility and audit,P0
+code_version,research_run,Git commit 或发布版本,TEXT,event_driven,internal_system,full,n/a,started_at,immutable,reproducibility and audit,P0
+data_cutoff_at,research_run,本次任务允许读取的数据截止时刻,TIMESTAMPTZ,event_driven,internal_system,full,n/a,started_at,immutable,global anti-look-ahead guard,P0
+usage_date,openrouter_usage_daily,OpenRouter模型Token使用日期,DATE,daily,openrouter_rankings,from_2025_01_01,usage_date,source_retrieved_at,refresh full bounded-window history; deduplicate model-date,Token share growth may lead cloud or model revenue,P0
+model_permaslug,openrouter_usage_daily,OpenRouter永久模型标识,TEXT,daily,openrouter_rankings,from_2025_01_01,usage_date,source_retrieved_at,preserve provider/model version mapping,Model-level adoption and launch velocity,P0
+provider,openrouter_usage_daily,由模型标识解析的Provider,TEXT,daily,derived_from_openrouter,from_2025_01_01,usage_date,source_retrieved_at,aggregate only within stated OpenRouter scope,Provider share growth may lead related fundamentals,P0
+total_tokens,openrouter_usage_daily,模型当日输入与输出Token合计,NUMERIC(28 0),daily,openrouter_rankings,from_2025_01_01,usage_date,source_retrieved_at,append and retain source snapshot version,Token growth may lead future revenue; cross-provider levels are not directly comparable,P0
+product_id,product_domain_rank_daily,AI产品稳定内部标识,TEXT,daily,internal_master,from_first_snapshot,n/a,source_retrieved_at,analyst-reviewed domain mapping,Product attention monitoring,P0
+observation_date,product_domain_rank_daily,Cloudflare域名排名观测日期,DATE,daily,cloudflare_radar,from_first_snapshot,observation_date,source_retrieved_at,append one snapshot per product-date,Web attention change may lead adoption or earnings,P0
+rank,product_domain_rank_daily,Cloudflare Top100内精确排名,INTEGER,daily,cloudflare_radar,partial,observation_date,source_retrieved_at,null outside ordered Top100; never impute exact rank,Product web-attention acceleration,P1
+rank_bucket,product_domain_rank_daily,Top100以外的域名排名区间,TEXT,daily,cloudflare_radar,from_first_snapshot,observation_date,source_retrieved_at,preserve categorical bucket; do not convert to exact rank,Product web-attention regime changes,P0
+ticker,fundamental_quarterly,证券代码,TEXT,quarterly,sec_edgar,from_2019,period_end,available_date,join company_master and preserve filing lineage,Quarterly cross-sectional research,P0
+fiscal_year,fundamental_quarterly,公司财年,INTEGER,quarterly,sec_edgar,from_2019,period_end,available_date,retain original SEC fiscal-year label,Comparable-quarter alignment,P0
+fiscal_quarter,fundamental_quarterly,公司财季 Q1 至 Q4,TEXT,quarterly,sec_edgar,from_2019,period_end,available_date,direct label or annual-quarter inference,Lead-lag alignment,P0
+period_end,fundamental_quarterly,经济季度期末,DATE,quarterly,sec_edgar,from_2019,period_end,available_date,immutable economic period,No-look-ahead alignment,P0
+available_date,fundamental_quarterly,构成该季度记录的最晚首次申报日,DATE,quarterly,sec_edgar,from_2019,period_end,available_date,use earliest filing per economic fact then max across selected metrics,Point-in-time research,P0
+revenue,fundamental_quarterly,单季度总收入,NUMERIC,quarterly,sec_edgar,from_2019,period_end,available_date,prefer direct quarter else cumulative difference,Capex conversion and growth acceleration,P0
+operating_cash_flow,fundamental_quarterly,单季度经营现金流,NUMERIC,quarterly,sec_edgar,from_2019,period_end,available_date,prefer direct quarter else cumulative difference,FCF conversion,P0
+capex,fundamental_quarterly,单季度总资本开支非AI专属,NUMERIC,quarterly,sec_edgar,from_2019,period_end,available_date,prefer direct quarter else cumulative difference,Capex conversion factor,P0
+free_cash_flow,fundamental_quarterly,单季度经营现金流减资本开支,NUMERIC,quarterly,derived_sec,from_2019,period_end,available_date,recompute after every filing normalization,FCF margin and conversion,P0
+revenue_yoy,fundamental_quarterly,同财季收入同比增长率,DOUBLE,quarterly,derived_sec,partial,period_end,available_date,match prior fiscal year and fiscal quarter,Fundamental acceleration,P0
+capex_yoy,fundamental_quarterly,同财季资本开支同比增长率,DOUBLE,quarterly,derived_sec,partial,period_end,available_date,match prior fiscal year and fiscal quarter,Capex lead-lag signal,P0
+fcf_margin,fundamental_quarterly,单季度自由现金流率,DOUBLE,quarterly,derived_sec,partial,period_end,available_date,free_cash_flow divided by revenue,Capex conversion target,P0
+revenue_growth_acceleration,fundamental_quarterly,收入同比增速较上一财季变化,DOUBLE,quarterly,derived_sec,partial,period_end,available_date,current revenue_yoy minus prior-quarter revenue_yoy,Signal Monitor change metric,P0
+metric_derivations,fundamental_quarterly,各指标直接披露或累计差额还原方式,TEXT,quarterly,internal_lineage,from_2019,period_end,available_date,preserve per-metric derivation labels,Audit and quality control,P0
+source_accessions,fundamental_quarterly,构成季度记录的SEC申报编号,TEXT,quarterly,sec_edgar,from_2019,period_end,available_date,preserve all contributing accessions,Row-level filing lineage,P0

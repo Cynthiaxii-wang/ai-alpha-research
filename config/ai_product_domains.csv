@@ -1,0 +1,10 @@
+product_id,product_name,domain,listed_ticker,owner,signal_scope
+chatgpt,ChatGPT,chatgpt.com,,OpenAI,product_web_attention
+claude,Claude,claude.ai,,Anthropic,product_web_attention
+gemini,Gemini,gemini.google.com,GOOGL,Google,product_web_attention
+copilot,Microsoft Copilot,copilot.microsoft.com,MSFT,Microsoft,product_web_attention
+meta_ai,Meta AI,meta.ai,META,Meta,product_web_attention
+perplexity,Perplexity,perplexity.ai,,Perplexity,product_web_attention
+cursor,Cursor,cursor.com,,Anysphere,product_web_attention
+hugging_face,Hugging Face,huggingface.co,,Hugging Face,developer_platform_attention
+openrouter,OpenRouter,openrouter.ai,,OpenRouter,developer_platform_attention

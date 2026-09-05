@@ -1,0 +1,13 @@
+entity_id,entity_name,entity_type,ticker,value_chain_bucket,core_research_member,monitoring_reason
+DELL,Dell Technologies,public_company,DELL,ai_servers,false,AI server orders revenue backlog and enterprise demand
+HPE,Hewlett Packard Enterprise,public_company,HPE,ai_servers,false,AI systems and enterprise infrastructure read-through
+SMCI,Super Micro Computer,public_company,SMCI,ai_servers,false,AI server volume and supply-chain read-through
+CRWV,CoreWeave,public_company,CRWV,neocloud,false,GPU cloud demand contracts and financing
+VRT,Vertiv,public_company,VRT,data_center_infrastructure,false,Power and cooling bottlenecks
+ARM,Arm Holdings,public_company,ARM,compute_architecture,false,CPU architecture and edge AI exposure
+MRVL,Marvell Technology,public_company,MRVL,semiconductor_networking,false,Custom silicon and optical networking
+OPENAI,OpenAI,private_company,,foundation_models,false,Frontier demand product adoption and cloud transmission
+ANTHROPIC,Anthropic,private_company,,foundation_models,false,Frontier model demand and cloud partner transmission
+XAI,xAI,private_company,,foundation_models,false,Compute procurement and model competition
+SCALEAI,Scale AI,private_company,,data_services,false,Enterprise and government AI demand
+NSCALE,Nscale,private_company,,neocloud,false,European sovereign AI infrastructure demand

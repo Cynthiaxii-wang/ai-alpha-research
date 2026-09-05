@@ -1,0 +1,13 @@
+{
+  "https://openai.com/index/gpt-6-astra/": {
+    "headline": "OpenAI 发布 GPT-6 Astra，并向 ChatGPT、API、Azure 与 AWS 开放",
+    "summary": "OpenAI 将 GPT-6 Astra 定位为其最智能、最对齐的模型。模型先向部分机构开放，随后覆盖 ChatGPT Plus、Pro、Business、Enterprise，以及 OpenAI API、Microsoft Azure 和 AWS Bedrock。标准 API 定价为每百万输入 token 10 美元、输出 token 50 美元。",
+    "whatChanged": "OpenAI 前沿模型从 GPT-5.6 升级到 GPT-6 Astra，同时进入 Azure 与 AWS 两个云渠道；更强的 computer-use、coding 和专业工作能力，叠加更高的旗舰 API 定价，为代理型应用采用、云端推理需求和单位算力价值提供了新的验证点。",
+    "expectationGap": "事件强化了前沿模型能力与商业化同步推进的预期，但短期仍需验证付费用户采用、API 调用量和推理成本。",
+    "affectedCompanies": ["MSFT", "AMZN"],
+    "beneficiaries": ["MSFT", "AMZN"],
+    "impactPath": "前沿模型升级 → ChatGPT/API 使用与代理工作负载 → Azure/AWS 推理需求 → 云收入和算力基础设施验证",
+    "nextCatalyst": "全面开放进度、API 使用量、Azure/AWS 客户采用和后续算力需求披露",
+    "falsification": "采用速度、API 调用量或付费转化未随能力提升而增长，或高定价抑制使用"
+  }
+}

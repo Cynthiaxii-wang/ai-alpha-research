@@ -1,0 +1,20 @@
+{
+  "name": "ai-alpha-research-platform",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "node scripts/start.mjs",
+    "preview": "npm run start"
+  },
+  "dependencies": {
+    "next": "16.3.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ai-alpha-research",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "start": "npm --prefix web run start"
+  },
+  "engines": { "node": ">=22.0.0" }
+}

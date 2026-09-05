@@ -1,0 +1,35 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+data/raw/
+data/processed/
+logs/
+web/node_modules/
+web/dist/
+node_modules/
+web/.next/
+web/out/
+web/.vercel/
+web/output/
+.playwright-cli/
+
+# Databases
+*.duckdb
+*.duckdb.wal
+
+# Research / internal data
+data/research/
+data/standardized/
+
+# Internal spreadsheets
+*.xlsx
+*.xls
+
+# Playwright artifacts
+web/.playwright-cli/
+output/
+research/

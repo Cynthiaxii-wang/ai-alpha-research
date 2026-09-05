@@ -1,0 +1,10 @@
+source_id,source_name,source_tier,source_class,access_mode,frequency,primary_topics,publication_rule,limitations
+sec_edgar,SEC EDGAR,A,regulator,api,intraday,filings earnings contracts policy,SEC dissemination time,US-listed disclosure only
+company_ir,Company Investor Relations,A,company,web_or_rss,intraday,earnings guidance capex product contracts,official publish timestamp,company terminology is inconsistent
+official_model_vendors,Official Model Vendor Blogs and Docs,A,company,web_or_rss,intraday,model launch API price capability safety,official publish timestamp,no standardized historical API
+github,GitHub,B,platform,api,daily,releases repositories developer adoption,API observed time plus object timestamps,current counts need snapshots
+huggingface,Hugging Face Hub,B,platform,api,daily,models downloads likes releases,API observed time plus object timestamps,download counts are not unique users
+massive,Massive,B,market,api,daily,price volume corporate actions,market timestamp,free tier is end of day
+openrouter,OpenRouter,D,aggregator,api,daily,model pricing context throughput latency,API observed time,third-party aggregation
+reputable_press,Reputable Wires and Specialist Press,C,media,web,intraday,corporate policy supply chain,article publish time,secondary source and some content paywalled
+policy_authorities,Government and Policy Authorities,A,regulator,web_or_rss,intraday,export controls AI regulation copyright,official publish timestamp,multiple jurisdictions and formats
