@@ -47,6 +47,7 @@ PRIMARY_DOMAINS = {
     "blog.google", "amazon.com", "aboutamazon.com", "aws.amazon.com",
     "meta.com", "nvidia.com", "amd.com", "broadcom.com", "dell.com",
     "oracle.com", "cloudflare.com", "github.com", "huggingface.co",
+    "tcs.com", "foxconn.com.tw",
     "investor.apple.com", "investor.tsmc.com", "investors.micron.com",
     "investors.arista.com", "investors.palantir.com", "investors.adobe.com",
     "investors.snowflake.com", "investors.mongodb.com", "investors.datadoghq.com",

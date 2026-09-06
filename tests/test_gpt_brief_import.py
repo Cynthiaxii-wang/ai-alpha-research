@@ -95,6 +95,17 @@ def test_rejects_date_only_or_brief_time_as_source_publication_time():
             raise AssertionError("brief time must never substitute for source publication time")
 
 
+def test_verified_company_domains_are_primary_sources():
+    for url in (
+        "https://www.tcs.com/who-we-are/newsroom/press-release/example",
+        "https://www.foxconn.com.tw/en-us/investor-relations/example",
+    ):
+        value = payload(events=[event(sourceUrl=url)])
+        result = MODULE.validate_and_normalize(value, datetime(2026, 9, 6, 8, 10, tzinfo=TZ))
+        assert result["events"][0]["sourceTier"] == "A"
+        assert result["events"][0]["sourceType"] == "official"
+
+
 def test_rejects_secrets_before_raw_or_public_write():
     try:
         MODULE.reject_sensitive_text("OPENAI_API_KEY=not-a-real-key")
