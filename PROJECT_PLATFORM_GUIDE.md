@@ -902,7 +902,7 @@ Targets 是未来结果 Y，不能与 Feature X 混在一起，也不能被页�
 建议每天北京时间 08:00 前后运行：
 
 ```bash
-cd /Users/cynthiaxii427/Projects/ai_alpha_research
+cd /your/local/path/ai_alpha_research
 python3 scripts/run_research_pipeline.py
 ```
 
@@ -924,7 +924,7 @@ python3 scripts/run_research_pipeline.py
 若仅更新页面展示或从现有数据库生成需求链，可运行：
 
 ```bash
-cd /Users/cynthiaxii427/Projects/ai_alpha_research
+cd /your/local/path/ai_alpha_research
 python3 scripts/export_web_data.py
 npm --prefix web run build
 ```
@@ -932,6 +932,37 @@ npm --prefix web run build
 导出会重新计算 `demandChain`，不会重新下载源数据。先在 DBeaver 中断开数据库连接，避免文件锁冲突；不要删除数据库来解决锁问题。页面证据截止时间、市场截至日和各指标观察日期可能不同。
 
 每日 AI 晨报应优先覆盖：模型/产品发布与定价、云和 Capex、芯片/网络/存储、开发者采用、企业变现、监管和关键供应链事件。事件必须附原始链接、发布时间、影响对象、传导路径和证伪条件。
+
+### 12.1 每日公开发布闸门
+
+08:00 的完整更新在研究流水线结束后执行公开发布检查。只有当本次所有到期的数据任务均成功、`research_pipeline` 成功，并且当日 `research_quality_report.json` 的 `status` 为 `pass` 时，才允许进入 Git 发布步骤。
+
+公开发布白名单当前只有：
+
+```text
+web/public/data/dashboard.json
+```
+
+发布脚本不会使用 `git add .`，只会逐项执行白名单路径的 `git add -- <path>`，并在提交前再次检查暂存区。若暂存区预先存在任何文件，或出现白名单外文件，发布立即中止。公开 JSON 还会检查本机绝对路径、DuckDB/内部数据路径及 `.env` 中的密钥值。
+
+当公开文件发生变化时，自动提交信息为：
+
+```text
+Daily data update YYYY-MM-DD
+```
+
+随后执行 `git push origin main`；GitHub 推送成功后，由已连接该仓库的 Vercel Production 项目触发部署。没有公开数据变化时跳过提交。任何数据任务失败、质量检查未通过、质量报告不是当日生成、Git 分支不是 `main`、远端缺失或推送失败时，均不发布。
+
+发布结果写入：
+
+```text
+data/processed/public_publication_report.json
+data/processed/daily_update_report.json
+logs/daily_update.log
+logs/daily_update.error.log
+```
+
+其中包含发布状态、commit hash、push 结果或阻断原因。以上报告和日志属于内部运行记录，不进入公开仓库。
 
 ---
 

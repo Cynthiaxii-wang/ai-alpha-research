@@ -20,6 +20,7 @@ web/output/
 # Databases
 *.duckdb
 *.duckdb.wal
+data/warehouse/
 
 # Research / internal data
 data/research/
@@ -33,3 +34,7 @@ data/standardized/
 web/.playwright-cli/
 output/
 research/
+
+# Public export whitelist: new dashboard exports are private by default.
+web/public/data/*
+!web/public/data/dashboard.json

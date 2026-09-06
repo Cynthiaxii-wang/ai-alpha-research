@@ -14,6 +14,11 @@ payload = {
     "WorkingDirectory": str(project),
     "StartCalendarInterval": {"Hour": 8, "Minute": 0},
     "RunAtLoad": False,
+    "EnvironmentVariables": {
+        "HOME": str(Path.home()),
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "GIT_TERMINAL_PROMPT": "0",
+    },
     "StandardOutPath": str(project / "logs" / "daily_update.log"),
     "StandardErrorPath": str(project / "logs" / "daily_update.error.log"),
 }

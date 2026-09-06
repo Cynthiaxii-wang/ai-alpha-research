@@ -84,6 +84,8 @@ def main() -> int:
     print(f"run_date={args.date} mode={'dry-run' if args.dry_run else 'live'}")
     for task in selected:
         print(f"{'PLAN' if args.dry_run else 'RUN '} {task.name} [{task.frequency}]")
+    if selected and not args.only:
+        print(f"{'PLAN' if args.dry_run else 'GATE'} public_publish [after quality PASS]")
     if args.dry_run:
         return 0
     STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -109,10 +111,37 @@ def main() -> int:
             run_rows.append({"task": task.name, **row})
             STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         report = ROOT / "data" / "processed" / "daily_update_report.json"
-        report.write_text(json.dumps({"runDate": args.date.isoformat(), "tasks": run_rows, "failed": failed}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        report_payload = {"runDate": args.date.isoformat(), "tasks": run_rows, "failed": failed}
+        report.write_text(json.dumps(report_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+        if not selected:
+            publication = {"status": "skipped", "reason": "no_update_tasks_ran"}
+        elif args.only:
+            publication = {"status": "skipped", "reason": "partial_manual_run"}
+        elif failed:
+            publication = {"status": "skipped", "reason": "data_update_failed", "failedTasks": list(failed)}
+        else:
+            publish_script = ROOT / "scripts" / "publish_public_dashboard.py"
+            result = subprocess.run(
+                [sys.executable, str(publish_script), "--date", args.date.isoformat()],
+                cwd=ROOT,
+                text=True,
+            )
+            publication_path = ROOT / "data" / "processed" / "public_publication_report.json"
+            try:
+                publication = json.loads(publication_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                publication = {"status": "failed", "reason": "publication_report_missing"}
+            if result.returncode != 0:
+                failed.append("public_publish")
+        report_payload["failed"] = failed
+        report_payload["publication"] = publication
+        report.write_text(json.dumps(report_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(f"publication={json.dumps(publication, ensure_ascii=False)}", flush=True)
     finally:
         LOCK_PATH.unlink(missing_ok=True)
-    print(f"completed={len(run_rows) - len(failed)} failed={len(failed)}")
+    completed_tasks = sum(row["status"] == "ok" for row in run_rows)
+    print(f"completed_tasks={completed_tasks} failed={len(failed)}")
     return 1 if failed else 0
 
 
