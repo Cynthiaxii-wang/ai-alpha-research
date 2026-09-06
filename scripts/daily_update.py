@@ -39,7 +39,9 @@ def tasks_for(run_date: date) -> list[Task]:
         Task("earnings_estimates", "daily", (py, str(scripts / "ingest_earnings_estimates.py")), True),
         Task("alternative_usage", "daily", (py, str(scripts / "ingest_alternative_usage.py"))),
         Task("developer_and_model_data", "weekly", (py, str(scripts / "ingest_research_universe.py"), "--start", "2024-10-01", "--end", end, "--sources", "github", "huggingface", "openrouter")),
-        Task("unadjusted_prices", "weekly", (py, str(scripts / "ingest_unadjusted_prices.py"), "--start", "2024-10-01", "--end", end), True),
+        # Weekly jobs run on Sunday. Do not mark this task weekdays_only,
+        # otherwise it can never become due.
+        Task("unadjusted_prices", "weekly", (py, str(scripts / "ingest_unadjusted_prices.py"), "--start", "2024-10-01", "--end", end)),
         Task("research_pipeline", "daily", (py, str(scripts / "run_research_pipeline.py"))),
     ]
     return tasks

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import date
 from typing import Any
 
@@ -55,8 +56,17 @@ class HuggingFaceClient:
 class MassiveClient:
     def __init__(self, settings: Settings):
         self.api_key = settings.massive_api_key
+        self._last_request_at = 0.0
 
     def daily_bars(self, ticker: str, start: date, end: date, *, adjusted: bool = True) -> Any:
+        # The entry-level endpoint accepts short bursts but starts redirecting
+        # when a batch crosses its rolling request window. Pace calls made by
+        # the same ingestion client so a scheduled universe refresh completes
+        # consistently instead of leaving a partial snapshot.
+        elapsed = time.monotonic() - self._last_request_at
+        if elapsed < 13.0:
+            time.sleep(13.0 - elapsed)
+        self._last_request_at = time.monotonic()
         return get_json(
             f"https://api.massive.com/v2/aggs/ticker/{ticker}/range/1/day/{start.isoformat()}/{end.isoformat()}",
             params={"adjusted": str(adjusted).lower(), "sort": "asc", "limit": 50000, "apiKey": self.api_key},

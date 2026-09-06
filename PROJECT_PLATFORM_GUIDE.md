@@ -902,7 +902,7 @@ Targets 是未来结果 Y，不能与 Feature X 混在一起，也不能被页�
 建议每天北京时间 08:00 前后运行：
 
 ```bash
-cd /Users/cynthiaxii427/Desktop/ai_alpha_research
+cd /Users/cynthiaxii427/Projects/ai_alpha_research
 python3 scripts/run_research_pipeline.py
 ```
 
@@ -924,7 +924,7 @@ python3 scripts/run_research_pipeline.py
 若仅更新页面展示或从现有数据库生成需求链，可运行：
 
 ```bash
-cd /Users/cynthiaxii427/Desktop/ai_alpha_research
+cd /Users/cynthiaxii427/Projects/ai_alpha_research
 python3 scripts/export_web_data.py
 npm --prefix web run build
 ```

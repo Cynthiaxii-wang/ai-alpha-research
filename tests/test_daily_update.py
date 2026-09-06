@@ -23,6 +23,7 @@ def test_sunday_plan_keeps_events_and_weekly_but_skips_market():
     names = {task.name for task in MODULE.tasks_for(run_date) if MODULE.is_due(task, run_date, {"tasks": {}}, False)}
     assert "ai_events" in names
     assert "developer_and_model_data" in names
+    assert "unadjusted_prices" in names
     assert "market_prices" not in names
 
 
