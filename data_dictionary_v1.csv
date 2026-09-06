@@ -74,14 +74,17 @@ confidence_score,supply_chain_relationship,关系真实性和权重可信度 0 �
 valid_from,supply_chain_relationship,关系经济生效时间,DATE,event_driven,company_disclosure_or_research,partial,valid_from,available_at,effective-dated,prevent current network leaking backward,P1
 valid_to,supply_chain_relationship,关系失效时间,DATE,event_driven,company_disclosure_or_research,partial,valid_to,available_at,null means active,prevent stale transmission,P1
 available_at,supply_chain_relationship,该关系被市场知晓的时间,TIMESTAMPTZ,event_driven,ingestion_metadata,full,valid_from,available_at,may differ from valid_from,hard anti-look-ahead constraint,P1
-event_id,event_observation,事件稳定标识,UUID,event_driven,internal_master,from_2024,event_time,available_at,deduplicate by source fingerprint,event study and catalyst control,P1
-event_type,event_observation,earnings model_launch pricing policy order outage 等,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,controlled taxonomy,event-conditioned factor tests,P1
-event_time,event_observation,事件实际发生或发布时刻,TIMESTAMPTZ,event_driven,news_filing_official,from_2024,event_time,available_at,preserve timezone and precision,event-window alignment,P1
-available_at,event_observation,研究系统可确认事件的最早时刻,TIMESTAMPTZ,event_driven,ingestion_metadata,full,event_time,available_at,max of public release and ingestion validation,hard anti-look-ahead constraint,P1
-headline,event_observation,事件短标题,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,store canonical summary,event audit trail,P1
-source_url,event_observation,原始来源链接,TEXT,event_driven,news_filing_official,from_2024,event_time,available_at,immutable source reference,evidence traceability,P1
-novelty_score,event_observation,与过去事件相似度反向得到的新颖度,NUMERIC(8 6),event_driven,derived_text,derived,event_time,feature_as_of_date,version model and corpus,event significance candidate,P2
-sentiment_score,event_observation,文本方向性而非投资建议,NUMERIC(8 6),event_driven,derived_text,derived,event_time,feature_as_of_date,version model and prompt,event-conditioned return candidate,P2
+event_id,event_observation,事件稳定标识,UUID,event_driven,internal_master,from_2024,event_date,available_at,deduplicate by source fingerprint,event study and catalyst control,P1
+event_type,event_observation,earnings model_launch pricing policy order outage 等,TEXT,event_driven,news_filing_official,from_2024,event_date,available_at,controlled taxonomy,event-conditioned factor tests,P1
+brief_date,event_observation,晨报所属上海日期且不得替代事件日期,DATE,daily,brief_metadata,full,brief_date,available_at,derive only from brief schedule,daily brief partitioning,P1
+event_date,event_observation,被描述事件实际发生日期且不得使用页面更新时间替代,DATE,event_driven,news_filing_official,from_2024,event_date,available_at,preserve source-supported event date,event-window alignment,P1
+source_published_at,event_observation,原始来源自身发布时间并保留时区,TIMESTAMPTZ,event_driven,news_filing_official,from_2024,event_date,available_at,never use retrieval generated_at or sitemap lastmod,source chronology,P1
+available_at,event_observation,研究系统可确认事件的最早时刻,TIMESTAMPTZ,event_driven,ingestion_metadata,full,event_date,available_at,max of source publication and ingestion validation,hard anti-look-ahead constraint,P1
+headline,event_observation,事件短标题,TEXT,event_driven,news_filing_official,from_2024,event_date,available_at,store canonical summary,event audit trail,P1
+source_type,event_observation,来源类型 official 或 media,TEXT,event_driven,derived_from_domain,full,event_date,available_at,controlled two-value taxonomy,source transparency,P1
+source_url,event_observation,不可变的原始来源直链,TEXT,event_driven,news_filing_official,from_2024,event_date,available_at,never replace with chat search or redirect URL,evidence traceability,P1
+novelty_score,event_observation,与过去事件相似度反向得到的新颖度,NUMERIC(8 6),event_driven,derived_text,derived,event_date,feature_as_of_date,version model and corpus,event significance candidate,P2
+sentiment_score,event_observation,文本方向性而非投资建议,NUMERIC(8 6),event_driven,derived_text,derived,event_date,feature_as_of_date,version model and prompt,event-conditioned return candidate,P2
 feature_date,feature_store,特征用于决策的交易日期,DATE,daily,derived,derived,source_period_end,as_of_date,materialize only from data available by cutoff,all hypotheses,P0
 security_id,feature_store,特征所属证券,UUID,daily,derived,derived,source_period_end,as_of_date,foreign key to security master,cross-sectional comparison,P0
 feature_name,feature_store,版本化特征名,TEXT,daily,derived,derived,source_period_end,as_of_date,append by feature version; never overwrite,all hypotheses,P0

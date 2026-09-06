@@ -1,5 +1,6 @@
 import importlib.util
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,8 +24,19 @@ def test_gpt_flagship_release_is_never_filtered_as_low_materiality():
     assert MODULE.has_material_signal(text)
 
 
-def test_openai_sitemap_parser_reads_canonical_url_and_lastmod():
-    xml = """<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://openai.com/index/gpt-6-astra/</loc><lastmod>2026-09-04T05:27:06.192Z</lastmod></url></urlset>"""
-    rows = MODULE.parse_sitemap(xml)
-    assert rows[0]["url"].endswith("/gpt-6-astra/")
-    assert rows[0]["published"].date().isoformat() == "2026-09-04"
+def test_old_official_event_is_not_redated_by_site_maintenance(monkeypatch):
+    xml = """<rss><channel><item><title>Today we are releasing GPT-6 Astra</title><link>https://openai.com/index/gpt-6-astra/</link><description>New flagship AI model available through the API</description><pubDate>Thu, 03 Sep 2026 12:00:00 GMT</pubDate></item></channel></rss>"""
+    monkeypatch.setattr(MODULE, "get_text", lambda *args, **kwargs: xml)
+    events, _ = MODULE.discover(datetime(2026, 9, 6, 5, tzinfo=timezone.utc), 36)
+    assert events == []
+
+
+def test_official_event_keeps_source_timestamp_and_separate_event_date(monkeypatch):
+    xml = """<rss><channel><item><title>New AI model launch</title><link>https://openai.com/index/new-model/</link><description>New flagship model available through the API</description><pubDate>Sun, 06 Sep 2026 00:30:00 GMT</pubDate></item></channel></rss>"""
+    monkeypatch.setattr(MODULE, "get_text", lambda *args, **kwargs: xml)
+    events, _ = MODULE.discover(datetime(2026, 9, 6, 5, tzinfo=timezone.utc), 36)
+    assert events[0]["event_date"] == "2026-09-06"
+    assert events[0]["source_published_at"] == "2026-09-06T00:30:00+00:00"
+    assert events[0]["sourceType"] == "official"
+    assert "publishedDate" not in events[0]
+    assert "publishedAt" not in events[0]

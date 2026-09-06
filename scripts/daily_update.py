@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE_PATH = ROOT / "data" / "processed" / "daily_update_state.json"
 LOCK_PATH = ROOT / "data" / "processed" / "daily_update.lock"
 TZ = ZoneInfo("Asia/Shanghai")
+NON_BLOCKING_PUBLICATION_TASKS = {"ai_events"}
 
 
 @dataclass(frozen=True)
@@ -69,6 +70,18 @@ def is_due(task: Task, run_date: date, state: dict, force: bool) -> bool:
     return True
 
 
+def partition_publication_failures(failed: list[str]) -> tuple[list[str], list[str]]:
+    """Event collection is isolated from the rest of the public snapshot.
+
+    A failed event refresh keeps the last valid event partition unchanged, but
+    does not prevent independently validated market/fundamental data from being
+    published. Every other task remains blocking.
+    """
+    non_blocking = [name for name in failed if name in NON_BLOCKING_PUBLICATION_TASKS]
+    blocking = [name for name in failed if name not in NON_BLOCKING_PUBLICATION_TASKS]
+    return blocking, non_blocking
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Update event, market and research data at appropriate frequencies.")
     parser.add_argument("--date", type=date.fromisoformat, default=datetime.now(TZ).date())
@@ -111,15 +124,19 @@ def main() -> int:
             run_rows.append({"task": task.name, **row})
             STATE_PATH.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         report = ROOT / "data" / "processed" / "daily_update_report.json"
-        report_payload = {"runDate": args.date.isoformat(), "tasks": run_rows, "failed": failed}
+        blocking_failed, non_blocking_failed = partition_publication_failures(failed)
+        report_payload = {
+            "runDate": args.date.isoformat(), "tasks": run_rows, "failed": failed,
+            "blockingFailed": blocking_failed, "nonBlockingFailed": non_blocking_failed,
+        }
         report.write_text(json.dumps(report_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
         if not selected:
             publication = {"status": "skipped", "reason": "no_update_tasks_ran"}
         elif args.only:
             publication = {"status": "skipped", "reason": "partial_manual_run"}
-        elif failed:
-            publication = {"status": "skipped", "reason": "data_update_failed", "failedTasks": list(failed)}
+        elif blocking_failed:
+            publication = {"status": "skipped", "reason": "data_update_failed", "failedTasks": blocking_failed}
         else:
             publish_script = ROOT / "scripts" / "publish_public_dashboard.py"
             result = subprocess.run(
@@ -134,7 +151,10 @@ def main() -> int:
                 publication = {"status": "failed", "reason": "publication_report_missing"}
             if result.returncode != 0:
                 failed.append("public_publish")
+        blocking_failed, non_blocking_failed = partition_publication_failures(failed)
         report_payload["failed"] = failed
+        report_payload["blockingFailed"] = blocking_failed
+        report_payload["nonBlockingFailed"] = non_blocking_failed
         report_payload["publication"] = publication
         report.write_text(json.dumps(report_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         print(f"publication={json.dumps(publication, ensure_ascii=False)}", flush=True)
@@ -142,7 +162,7 @@ def main() -> int:
         LOCK_PATH.unlink(missing_ok=True)
     completed_tasks = sum(row["status"] == "ok" for row in run_rows)
     print(f"completed_tasks={completed_tasks} failed={len(failed)}")
-    return 1 if failed else 0
+    return 1 if blocking_failed else 0
 
 
 if __name__ == "__main__":

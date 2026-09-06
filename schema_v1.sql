@@ -218,9 +218,12 @@ CREATE INDEX idx_supply_customer_pit
 CREATE TABLE event_observation (
     event_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_type TEXT NOT NULL,
-    event_time TIMESTAMPTZ NOT NULL,
+    brief_date DATE NOT NULL,
+    event_date DATE NOT NULL,
+    source_published_at TIMESTAMPTZ NOT NULL,
     available_at TIMESTAMPTZ NOT NULL,
     headline TEXT NOT NULL,
+    source_type TEXT NOT NULL CHECK (source_type IN ('official', 'media')),
     source_url TEXT NOT NULL,
     source_fingerprint TEXT NOT NULL UNIQUE,
     novelty_score NUMERIC(8,6) CHECK (novelty_score IS NULL OR novelty_score BETWEEN 0 AND 1),
@@ -228,7 +231,7 @@ CREATE TABLE event_observation (
     ingested_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_event_pit ON event_observation(event_time, available_at);
+CREATE INDEX idx_event_pit ON event_observation(event_date, source_published_at, available_at);
 
 CREATE TABLE event_company_map (
     event_id UUID NOT NULL REFERENCES event_observation(event_id),

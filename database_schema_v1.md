@@ -55,12 +55,14 @@ research_run   ── feature_store / targets
 
 ## 3. 时间语义
 
-系统明确区分四类时间：
+系统明确区分六类时间；事件层的三个时钟不得相互替代：
 
 | 时间 | 含义 | 示例 |
 |---|---|---|
 | `period_end` / `observation_end` | 经济事实或测量窗口结束 | 2025Q4 财务期末、某周产品访问量周末 |
-| `event_time` | 事件实际发生或公开发布时刻 | 财报发布、模型上线 |
+| `brief_date` | 晨报所属的上海日期 | 2026-09-06 早间简报 |
+| `event_date` | 被描述事件实际发生的日期 | 模型于 2026-09-03 正式发布 |
+| `source_published_at` | 原始来源自己的发布时间，保留时区 | Reuters 于 2026-09-05T22:10:00Z 发布报道 |
 | `available_at` / `as_of_date` | 市场参与者能够获得该数据的最早时间 | 供应商次周一发布上周流量 |
 | `feature_date` | 研究者准备形成仓位的决策交易日 | 周一收盘形成信号 |
 
@@ -69,6 +71,8 @@ Point-in-time 查询必须满足：
 ```sql
 source.available_at <= decision_cutoff_at
 ```
+
+晨报生成时间、页面更新时间、抓取时间和 sitemap `lastmod` 只能用于运行审计，禁止写入 `event_date` 或 `source_published_at`。事件同时保存 `source_type`（`official` / `media`）和不可变的原始 `source_url`。
 
 对同一个自然键，只选择截止时点前 `available_at` 最大的版本。不得根据 `period_end` 直接向日频面板 forward fill。
 

@@ -112,3 +112,41 @@ Daily events are stored separately from the feature store. Only lagged, versione
 
 All event-derived features must use `available_at <= decision_cutoff_at` and a versioned taxonomy.
 
+# Free manual ChatGPT import
+
+The project can import a ChatGPT-generated morning brief without an OpenAI API
+key. This is intentionally a controlled copy workflow rather than unattended
+access to a private ChatGPT conversation.
+
+1. Keep `automation/daily_ai_brief_prompt.md` in the ChatGPT tracking task so
+   each report ends with an `ai-alpha-gpt-brief-v2` JSON block.
+2. Double-click `scripts/start_gpt_brief_import.command`, or run:
+
+   ```bash
+   /usr/bin/python3 scripts/serve_gpt_brief_import.py
+   ```
+
+3. Paste the whole ChatGPT report into the local page and select
+   **核验、导入并发布**.
+
+The service binds only to `127.0.0.1`. The original paste is retained under
+`data/raw/gpt_manual_import/` for local lineage and is ignored by Git. The
+importer requires a fresh source timestamp, a direct HTTPS link from an approved
+primary or reputable secondary domain, complete materiality components, and a
+score of at least 60. It rejects suspected secrets and deduplicates by source
+URL. Tier B reporting is explicitly labeled as attributed reporting rather than
+issuer confirmation.
+
+The event schema keeps three clocks separate: `brief_date` is the Shanghai date
+of the morning brief, `event_date` is when the underlying event occurred, and
+`source_published_at` is the source's own publication timestamp. The importer
+does not accept a date-only source timestamp and rejects an exact substitution
+of the brief generation time. Sitemap `lastmod`, retrieval time and dashboard
+generation time are never event dates.
+
+After a successful import, the existing research pipeline rebuilds the local
+warehouse and public dashboard. The existing publication gate then commits and
+pushes only `web/public/data/dashboard.json`; a failed import, failed research
+check, or failed release gate cannot trigger a push. Results and any commit hash
+are written to `data/processed/gpt_brief_import_report.json` and shown in the
+local page.

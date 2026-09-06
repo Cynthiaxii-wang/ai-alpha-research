@@ -17,6 +17,8 @@ TZ = ZoneInfo("Asia/Shanghai")
 QUALITY_REPORT = ROOT / "data" / "research" / "research_quality_report.json"
 UPDATE_REPORT = ROOT / "data" / "processed" / "daily_update_report.json"
 PUBLICATION_REPORT = ROOT / "data" / "processed" / "public_publication_report.json"
+GPT_IMPORT_REPORT = ROOT / "data" / "processed" / "gpt_brief_import_report.json"
+DAILY_BRIEF = ROOT / "data" / "processed" / "daily_ai_brief.json"
 
 # This is intentionally narrow. Add another path only after confirming that it
 # contains browser-safe, redistribution-safe data.
@@ -82,7 +84,12 @@ def verify_release_gates(run_date: date) -> None:
         raise PublishBlocked("daily_update_report_not_current")
     if not update.get("tasks"):
         raise PublishBlocked("no_update_tasks_ran")
-    if update.get("failed"):
+    failed = update.get("failed") or []
+    blocking_failed = update.get("blockingFailed")
+    if blocking_failed is None:
+        # Backward-compatible interpretation of older update reports.
+        blocking_failed = [name for name in failed if name != "ai_events"]
+    if blocking_failed:
         raise PublishBlocked("data_update_failed")
     task_status = {row.get("task"): row.get("status") for row in update.get("tasks", [])}
     if task_status.get("research_pipeline") != "ok":
@@ -93,6 +100,22 @@ def verify_release_gates(run_date: date) -> None:
         raise PublishBlocked("data_quality_not_pass")
     if local_date(quality.get("generated_at")) != run_date:
         raise PublishBlocked("data_quality_report_not_current")
+
+    manual_import_ran = task_status.get("gpt_brief_import") == "ok"
+    if manual_import_ran:
+        brief = load_json(DAILY_BRIEF)
+        if brief.get("importMethod") != "manual_chatgpt_copy":
+            raise PublishBlocked("manual_gpt_import_brief_missing")
+        imported = load_json(GPT_IMPORT_REPORT)
+        if imported.get("status") not in {"validated", "ok", "saved_not_published"}:
+            raise PublishBlocked("manual_gpt_import_not_validated")
+        if imported.get("runDate") != run_date.isoformat():
+            raise PublishBlocked("manual_gpt_import_report_not_current")
+        if not isinstance(imported.get("importedEvents"), int) or imported["importedEvents"] < 1:
+            raise PublishBlocked("manual_gpt_import_has_no_events")
+        allowed_statuses = {"official_feed", "primary_source_link_supplied", "attributed_secondary_report"}
+        if any(event.get("verificationStatus") not in allowed_statuses for event in brief.get("events", [])):
+            raise PublishBlocked("manual_gpt_event_missing_source_classification")
 
 
 def verify_public_files() -> None:

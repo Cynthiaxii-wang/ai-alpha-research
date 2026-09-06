@@ -19,8 +19,10 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+LOCAL_TZ = ZoneInfo("Asia/Shanghai")
 sys.path.insert(0, str(ROOT / "src"))
 from ai_alpha_research.config import load_dotenv  # noqa: E402
 from ai_alpha_research.http import get_text, post_json  # noqa: E402
@@ -33,7 +35,6 @@ ENTITY_MAP = {
     "gemini": "GOOGL", "amazon": "AMZN", "aws": "AMZN", "meta": "META",
     "broadcom": "AVGO", "amd": "AMD", "oracle": "ORCL", "openai": "MSFT",
 }
-OPENAI_PRODUCT_SITEMAP = "https://openai.com/sitemap.xml/product/"
 
 
 def clean(value: str | None) -> str:
@@ -81,78 +82,6 @@ def parse_feed(xml_text: str) -> list[dict]:
             "published": parse_date(child_text(node, ("pubdate", "published", "updated", "date"))),
         })
     return rows
-
-
-def parse_sitemap(xml_text: str) -> list[dict]:
-    root = ET.fromstring(xml_text)
-    rows = []
-    for node in root.iter():
-        if node.tag.rsplit("}", 1)[-1].lower() != "url":
-            continue
-        loc = child_text(node, ("loc",))
-        modified = parse_date(child_text(node, ("lastmod",)))
-        if loc and modified:
-            rows.append({"url": loc, "published": modified})
-    return rows
-
-
-def title_from_url(url: str) -> str:
-    slug = url.rstrip("/").rsplit("/", 1)[-1]
-    return " ".join(part.upper() if part in {"gpt", "api", "ai"} else part.capitalize() for part in slug.split("-"))
-
-
-def discover_openai_sitemap(now: datetime, hours: int) -> tuple[list[dict], dict]:
-    cutoff = now.astimezone(timezone.utc) - timedelta(hours=hours)
-    try:
-        xml_text = get_text(OPENAI_PRODUCT_SITEMAP, headers={"User-Agent": "AIAlphaResearch/0.1 research@local"}, timeout=25, retries=0)
-        rows = parse_sitemap(xml_text)
-    except Exception as exc:
-        return [], {"source": "OpenAI Product Sitemap", "status": "failed", "error": type(exc).__name__}
-    candidates = []
-    for row in rows:
-        url = row["url"]
-        if row["published"] < cutoff or not url.startswith("https://openai.com/index/"):
-            continue
-        slug = url.rstrip("/").rsplit("/", 1)[-1].lower()
-        if not re.search(r"(?:gpt[-‑]?\d|model|codex|sora)", slug):
-            continue
-        candidates.append(row)
-    # Old pages can receive a new lastmod during site maintenance. New launches
-    # sit in the newest sitemap update batch, so exclude older maintenance batches.
-    newest = max((row["published"] for row in candidates), default=None)
-    if newest:
-        candidates = [row for row in candidates if row["published"] >= newest - timedelta(hours=4)]
-    events = []
-    for row in candidates:
-        url = row["url"]
-        title = title_from_url(url)
-        combined = f"{title} OpenAI official model release available"
-        if score(combined, "A") < 65 or not has_material_signal(combined):
-            continue
-        events.append({
-            "id": hashlib.sha256(url.encode()).hexdigest()[:16],
-            "publishedDate": row["published"].date().isoformat(),
-            "publishedAt": row["published"].isoformat(),
-            "timeBasis": "OpenAI product sitemap lastmod; source page has no explicit publication time",
-            "type": "model_release",
-            "sourceTier": "A",
-            "sourceName": "OpenAI",
-            "sourceUrl": url,
-            "supportingUrls": [],
-            "headline": title,
-            "summary": f"OpenAI 官方产品页面更新：{title}。",
-            "whatChanged": "OpenAI 官方产品站点出现新的模型发布页面，具体能力、价格和可用范围以原文为准。",
-            "affectedCompanies": ["MSFT"],
-            "beneficiaries": ["MSFT"],
-            "impactPath": "前沿模型发布 → 产品采用与推理需求 → 云与算力产业链验证",
-            "horizon": "1D / 5D / 20D",
-            "pricingStatus": "待市场数据验证",
-            "score": score(combined, "A"),
-            "confidence": "高",
-            "nextCatalyst": "API 价格、用户可用范围及合作伙伴披露",
-            "falsification": "实际可用范围、采用率或推理需求低于发布所隐含的预期",
-        })
-    return events, {"source": "OpenAI Product Sitemap", "status": "ok", "entries": len(rows), "materialCandidates": len(events)}
 
 
 def score(text: str, tier: str) -> int:
@@ -240,11 +169,12 @@ def discover(now: datetime, hours: int) -> tuple[list[dict], list[dict]]:
             event_id = hashlib.sha256(entry["url"].encode()).hexdigest()[:16]
             events.append({
                 "id": event_id,
-                "publishedDate": entry["published"].date().isoformat(),
-                "publishedAt": entry["published"].isoformat(),
+                "event_date": entry["published"].astimezone(LOCAL_TZ).date().isoformat(),
+                "source_published_at": entry["published"].isoformat(),
                 "timeBasis": "official RSS/Atom publication timestamp",
                 "type": "official_update",
                 "sourceTier": feed["source_tier"],
+                "sourceType": "official",
                 "sourceName": feed["source_name"],
                 "sourceUrl": entry["url"],
                 "supportingUrls": [],
@@ -260,12 +190,14 @@ def discover(now: datetime, hours: int) -> tuple[list[dict], list[dict]]:
                 "confidence": "高" if feed["source_tier"] == "A" else "中",
                 "nextCatalyst": "下一次公司披露或经营数据更新",
                 "falsification": "后续财务、采用率或市场数据未确认该事件影响",
+                "verificationStatus": "official_feed",
             })
-    sitemap_events, sitemap_status = discover_openai_sitemap(now, hours)
-    events.extend(sitemap_events)
-    feed_status.append(sitemap_status)
+    # A sitemap's lastmod is a crawler-maintenance timestamp, not a publication
+    # timestamp. It must never create or re-date a research event. OpenAI events
+    # enter through the official news RSS feed above, which carries an explicit
+    # publication time.
     deduped = {event["sourceUrl"]: event for event in events}
-    return sorted(deduped.values(), key=lambda x: (x["score"], x["publishedAt"]), reverse=True)[:8], feed_status
+    return sorted(deduped.values(), key=lambda x: (x["score"], x["source_published_at"]), reverse=True)[:8], feed_status
 
 
 def main() -> int:
@@ -279,8 +211,19 @@ def main() -> int:
     events = apply_verified_overrides(events)
     output = ROOT / "data" / "processed" / "daily_ai_brief.json"
     output.parent.mkdir(parents=True, exist_ok=True)
+    report = ROOT / "data" / "processed" / "event_update_report.json"
+    feeds_ok = sum(item["status"] == "ok" for item in status)
+    report.write_text(json.dumps({
+        "brief_date": now.astimezone(LOCAL_TZ).date().isoformat(),
+        "attempted_at": now.isoformat(), "status": "ok" if feeds_ok else "failed",
+        "feeds": status, "event_count": len(events),
+    }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if not feeds_ok:
+        print("all event feeds failed; last valid event partition left unchanged", file=sys.stderr)
+        return 1
     payload = {
         "status": "published",
+        "brief_date": now.astimezone(LOCAL_TZ).date().isoformat(),
         "asOf": now.isoformat(),
         "eventCount": len(events),
         "verifiedCount": len(events),
@@ -294,8 +237,8 @@ def main() -> int:
         "method": "官方 RSS/Atom 来源、时间窗过滤、关键词重要性评分与 URL 去重",
     }
     output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"events={len(events)} feeds_ok={sum(x['status'] == 'ok' for x in status)} output={output.relative_to(ROOT)}")
-    return 0 if any(x["status"] == "ok" for x in status) else 1
+    print(f"events={len(events)} feeds_ok={feeds_ok} output={output.relative_to(ROOT)}")
+    return 0
 
 
 if __name__ == "__main__":

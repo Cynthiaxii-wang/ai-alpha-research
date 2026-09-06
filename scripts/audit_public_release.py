@@ -68,9 +68,8 @@ def main():
                 if (expected is None) != (actual is None) or (expected is not None and not close(actual, expected)):
                     yoy_mismatches.append({'ticker':row['ticker'],'period_end':row['period_end'],'field':field})
     brief = json.loads((ROOT / 'data/processed/daily_ai_brief.json').read_text())
-    event_dates = [dict(id=e.get('id'),publishedDate=e.get('publishedDate'),publishedAt=e.get('publishedAt'))
-                   for e in brief.get('events',[]) if e.get('publishedDate') and e.get('publishedAt')
-                   and e['publishedDate'] != e['publishedAt'][:10]]
+    event_dates = [dict(id=e.get('id'),event_date=e.get('event_date'),source_published_at=e.get('source_published_at'))
+                   for e in brief.get('events',[]) if not e.get('event_date') or not e.get('source_published_at')]
     report = {
         'checked_at':datetime.now(timezone.utc).isoformat(),
         'release_status':'blocked_for_public_redistribution',

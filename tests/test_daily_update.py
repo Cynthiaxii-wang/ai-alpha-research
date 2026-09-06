@@ -32,3 +32,11 @@ def test_successful_task_is_not_repeated_same_day():
     state = {"tasks": {"ai_events": {"last_success_date": "2026-09-04"}}}
     task = next(task for task in MODULE.tasks_for(run_date) if task.name == "ai_events")
     assert not MODULE.is_due(task, run_date, state, False)
+
+
+def test_event_failure_does_not_block_other_dashboard_publication():
+    blocking, non_blocking = MODULE.partition_publication_failures(["ai_events"])
+    assert blocking == []
+    assert non_blocking == ["ai_events"]
+    blocking, non_blocking = MODULE.partition_publication_failures(["ai_events", "market_prices"])
+    assert blocking == ["market_prices"]

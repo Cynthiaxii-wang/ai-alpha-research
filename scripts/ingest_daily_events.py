@@ -5,6 +5,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -16,6 +17,7 @@ from ai_alpha_research.storage import write_raw_json  # noqa: E402
 
 
 MAX_COMPONENTS = {"surprise": 25, "fundamental": 25, "tradability": 20, "breadth": 15, "evidence": 15}
+LOCAL_TZ = ZoneInfo("Asia/Shanghai")
 
 
 def validate_scores(components: dict) -> int:
@@ -42,6 +44,12 @@ def main() -> int:
     normalized = []
     report = []
     for candidate in candidates:
+        missing_dates = [key for key in ("event_date", "source_published_at") if not candidate.get(key)]
+        if missing_dates:
+            raise ValueError(
+                f"{candidate.get('event_id', 'candidate')} missing explicit event dates: {missing_dates}; "
+                "published_date, retrieval time and page update time may not be substituted"
+            )
         documents, errors = [], []
         for position, url in enumerate([candidate["source_url"], *candidate.get("supporting_urls", [])]):
             try:
@@ -67,9 +75,11 @@ def main() -> int:
             print(f"[daily_event] {candidate['event_id']}: verification_failed matches={phrase_matches} errors={len(errors)}", file=sys.stderr, flush=True)
             continue
         normalized.append({
-            "event_id": candidate["event_id"], "event_time": candidate["published_date"], "first_seen_at": now,
+            "event_id": candidate["event_id"], "brief_date": datetime.now(LOCAL_TZ).date().isoformat(),
+            "event_date": candidate["event_date"], "source_published_at": candidate["source_published_at"], "first_seen_at": now,
             "available_at": now, "available_at_precision": "system_verified_timestamp",
-            "event_type": candidate["event_type"], "source_tier": candidate["source_tier"], "source_name": candidate["source_name"],
+            "event_type": candidate["event_type"], "source_tier": candidate["source_tier"],
+            "source_type": "official" if candidate["source_tier"] == "A" else "media", "source_name": candidate["source_name"],
             "source_url": candidate["source_url"], "supporting_urls": json.dumps(candidate.get("supporting_urls", []), ensure_ascii=False),
             "headline": candidate["headline"], "fact_summary": candidate["fact_summary"], "what_changed": candidate["what_changed"],
             "expectation_gap": candidate["expectation_gap"], "affected_companies": json.dumps(candidate["affected_companies"], ensure_ascii=False),
@@ -88,9 +98,11 @@ def main() -> int:
         "status": "published" if brief_events else "no_material_event",
         "headline": f"今日识别 {len(brief_events)} 条重要 AI 事件" if brief_events else "今日暂无达到阈值的 AI 事件",
         "summary": "算力需求信号继续增强：Broadcom 验证自研 AI 芯片与网络需求，Dell 验证服务器真实订单，Microsoft 改善 Azure 货币化可观测性。" if brief_events else "未用低质量信息填充晨报。",
+        "brief_date": datetime.now(LOCAL_TZ).date().isoformat(),
         "scheduledTime": "08:00 Asia/Shanghai", "generatedAt": now, "verifiedCount": len(normalized),
         "events": [{
-            "id": row["event_id"], "publishedDate": row["event_time"], "type": row["event_type"], "sourceTier": row["source_tier"],
+            "id": row["event_id"], "event_date": row["event_date"], "source_published_at": row["source_published_at"],
+            "type": row["event_type"], "sourceTier": row["source_tier"], "sourceType": row["source_type"],
             "sourceName": row["source_name"], "sourceUrl": row["source_url"], "supportingUrls": json.loads(row["supporting_urls"]),
             "headline": row["headline"], "summary": row["fact_summary"], "whatChanged": row["what_changed"], "expectationGap": row["expectation_gap"],
             "affectedCompanies": json.loads(row["affected_companies"]), "beneficiaries": json.loads(row["beneficiaries"]),

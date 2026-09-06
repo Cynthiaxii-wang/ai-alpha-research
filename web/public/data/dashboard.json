@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-09-06T04:27:26.957449+00:00",
+    "cutoff": "2026-09-06T05:25:33.454519+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,11 +1186,11 @@
       }
     ]
   },
-  "generatedAt": "2026-09-06T04:27:27.026991+00:00",
+  "generatedAt": "2026-09-06T05:25:33.528103+00:00",
   "asOfDate": "2026-09-03",
   "marketAsOfDate": "2026-09-03",
   "fundamentalAsOfDate": "2026-09-01",
-  "briefGeneratedAt": "2026-09-06T04:14:56.732500+00:00",
+  "briefGeneratedAt": "2026-09-06T05:25:14.972620+00:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -1670,8 +1670,8 @@
       "trend": "Accelerating",
       "flagConclusion": "股价跑赢 QQQ，但基本面得分仍低于强势阈值，存在预期领先风险。",
       "signalChange": "Baseline",
-      "eventCount": 1,
-      "latestCatalyst": "OpenAI 发布 GPT-6 Astra，并向 ChatGPT、API、Azure 与 AWS 开放"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "GOOGL",
@@ -1806,8 +1806,8 @@
       "trend": "Decelerating",
       "flagConclusion": "基本面得分低于强势阈值，过去 20 个交易日同时跑输 QQQ。",
       "signalChange": "Baseline",
-      "eventCount": 1,
-      "latestCatalyst": "OpenAI 发布 GPT-6 Astra，并向 ChatGPT、API、Azure 与 AWS 开放"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "ORCL",
@@ -14601,7 +14601,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-09-06T04:27:23.690345+00:00",
+    "generated_at": "2026-09-06T05:25:30.178223+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -16621,7 +16621,7 @@
     }
   },
   "quality": {
-    "generated_at": "2026-09-06T04:27:20.000069+00:00",
+    "generated_at": "2026-09-06T05:25:26.373710+00:00",
     "status": "pass",
     "status_scope": "engineering_integrity_checks_only",
     "research_readiness": "exploratory_only",
@@ -16692,46 +16692,14 @@
   },
   "dailyBrief": {
     "status": "published",
-    "asOf": "2026-09-06T04:14:56.732500+00:00",
-    "eventCount": 1,
-    "verifiedCount": 1,
-    "headline": "今日识别 1 条重要 AI 事件",
-    "summary": "本页仅保留官方来源、处于有效时间窗且达到重要性阈值的事件。",
+    "asOf": "2026-09-06T05:25:14.972620+00:00",
+    "eventCount": 0,
+    "verifiedCount": 0,
+    "headline": "今日暂无达到阈值的重要 AI 事件",
+    "summary": "官方来源在当前时间窗内暂无达到研究阈值的新事件。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-09-06T04:14:56.732500+00:00",
-    "events": [
-      {
-        "id": "ea74e2fffbc50210",
-        "publishedDate": "2026-09-06",
-        "publishedAt": "2026-09-06T03:44:02.020000+00:00",
-        "timeBasis": "OpenAI product sitemap lastmod; source page has no explicit publication time",
-        "type": "model_release",
-        "sourceTier": "A",
-        "sourceName": "OpenAI",
-        "sourceUrl": "https://openai.com/index/gpt-6-astra/",
-        "supportingUrls": [],
-        "headline": "OpenAI 发布 GPT-6 Astra，并向 ChatGPT、API、Azure 与 AWS 开放",
-        "summary": "OpenAI 将 GPT-6 Astra 定位为其最智能、最对齐的模型。模型先向部分机构开放，随后覆盖 ChatGPT Plus、Pro、Business、Enterprise，以及 OpenAI API、Microsoft Azure 和 AWS Bedrock。标准 API 定价为每百万输入 token 10 美元、输出 token 50 美元。",
-        "whatChanged": "OpenAI 前沿模型从 GPT-5.6 升级到 GPT-6 Astra，同时进入 Azure 与 AWS 两个云渠道；更强的 computer-use、coding 和专业工作能力，叠加更高的旗舰 API 定价，为代理型应用采用、云端推理需求和单位算力价值提供了新的验证点。",
-        "affectedCompanies": [
-          "MSFT",
-          "AMZN"
-        ],
-        "beneficiaries": [
-          "MSFT",
-          "AMZN"
-        ],
-        "impactPath": "前沿模型升级 → ChatGPT/API 使用与代理工作负载 → Azure/AWS 推理需求 → 云收入和算力基础设施验证",
-        "horizon": "1D / 5D / 20D",
-        "pricingStatus": "待市场数据验证",
-        "score": 67,
-        "confidence": "高",
-        "nextCatalyst": "全面开放进度、API 使用量、Azure/AWS 客户采用和后续算力需求披露",
-        "falsification": "采用速度、API 调用量或付费转化未随能力提升而增长，或高定价抑制使用",
-        "expectationGap": "事件强化了前沿模型能力与商业化同步推进的预期，但短期仍需验证付费用户采用、API 调用量和推理成本。",
-        "analystVerified": true
-      }
-    ],
+    "generatedAt": "2026-09-06T05:25:14.972620+00:00",
+    "events": [],
     "feedStatus": [
       {
         "source": "OpenAI",
@@ -16752,15 +16720,9 @@
         "source": "NVIDIA Newsroom",
         "status": "ok",
         "entries": 20
-      },
-      {
-        "source": "OpenAI Product Sitemap",
-        "status": "ok",
-        "entries": 179,
-        "materialCandidates": 1
       }
     ],
-    "localizationStatus": "ok",
+    "localizationStatus": "not_needed",
     "method": "官方 RSS/Atom 来源、时间窗过滤、关键词重要性评分与 URL 去重"
   },
   "alternativePulse": [

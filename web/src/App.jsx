@@ -37,6 +37,10 @@ const dateTimeCN = value => value ? new Intl.DateTimeFormat('zh-CN', { timeZone:
 const epsSurprise = value => value == null ? '—' : Math.abs(value) > 100 ? `${value > 0 ? '>+100' : '<-100'}%*` : `${num(value)}%`
 const median = values => { const clean = values.filter(value => value != null).sort((a,b) => a-b); if (!clean.length) return null; const m = Math.floor(clean.length / 2); return clean.length % 2 ? clean[m] : (clean[m-1] + clean[m]) / 2 }
 const trendLabel = value => value === 'Accelerating' ? '加速 ↑' : value === 'Decelerating' ? '放缓 ↓' : '稳定 →'
+const eventSource = event => {
+  const type = event.sourceType || (event.sourceTier === 'B' ? 'media' : 'official')
+  return {type, label: type === 'media' ? 'Media Source' : 'Official Source', linkLabel: type === 'media' ? '查看媒体原文 ↗' : '查看官方原文 ↗'}
+}
 
 function LineChart({ rows }) {
   if (!rows?.length) return <div className="empty-chart">No price history</div>
@@ -101,13 +105,13 @@ function Overview({ data, openCompany }) {
         {firstQueue && <button className="snapshot-focus" onClick={() => openCompany(firstQueue.ticker)}><span>首要研究对象</span><b>{firstQueue.ticker}</b><p>{firstQueue.setup}</p><strong className={tone(firstQueue.excess20d)}>{pct(firstQueue.excess20d)} vs QQQ</strong><i>↗</i></button>}
       </div>
       {topEvent && <article className="brief-card">
-        <div className="card-kicker"><span>今日核心事件</span><span className="status-tag">{topEvent.sourceName} · {topEvent.publishedDate}</span></div>
+        <div className="card-kicker"><span>今日核心事件</span><span className="status-tag"><b className={`source-type source-${eventSource(topEvent).type}`}>{eventSource(topEvent).label}</b>{topEvent.sourceName} · {topEvent.event_date}</span></div>
         <h3>{topEvent.headline}</h3>
         <p className="brief-summary">{topEvent.summary}</p>
         <div className="brief-insight"><span>投资含义</span><p>{topEvent.whatChanged}</p></div>
         <div className="brief-footer">
           <div><span>关联公司</span><div className="brief-tickers">{topEvent.affectedCompanies.map(ticker => <b key={ticker}>{ticker}</b>)}</div></div>
-          <a href={topEvent.sourceUrl} target="_blank" rel="noreferrer">查看官方原文 ↗</a>
+          <a href={topEvent.sourceUrl} target="_blank" rel="noreferrer" title={topEvent.sourceUrl}>{eventSource(topEvent).linkLabel}</a>
         </div>
       </article>}
     </section>
@@ -131,13 +135,13 @@ function Overview({ data, openCompany }) {
     </section>}
 
     {events.length > 1 && <section className="event-section">
-      <div className="panel-head event-heading"><div><span className="eyebrow">VERIFIED EVENT INTELLIGENCE</span><h2>今日 AI 产业重要事件</h2></div><span className="subtle">Tier A 官方来源 · 按重要性排序</span></div>
+      <div className="panel-head event-heading"><div><span className="eyebrow">TRACEABLE EVENT INTELLIGENCE</span><h2>今日 AI 产业重要事件</h2></div><span className="subtle">Official Source / Media Source · 按重要性排序</span></div>
       <div className="event-grid">{events.map((event, index) => <article className="event-card" key={event.id}>
-        <div className="event-top"><span className="event-rank">0{index + 1}</span><span className="event-tier">TIER {event.sourceTier}</span></div>
+        <div className="event-top"><span className="event-rank">0{index + 1}</span><span className={`event-tier source-${eventSource(event).type}`}>{eventSource(event).label}</span></div>
         <h3>{event.headline}</h3><p className="event-summary">{event.summary}</p>
         <div className="event-impact"><span>传导逻辑</span><p>{event.whatChanged}</p></div>
         <div className="ticker-tags">{event.affectedCompanies.slice(0, 6).map(ticker => <span key={ticker}>{ticker}</span>)}</div>
-        <div className="event-footer"><span>{event.publishedDate}</span><a href={event.sourceUrl} target="_blank" rel="noreferrer">{event.sourceName} ↗</a></div>
+        <div className="event-footer"><span>事件 {event.event_date} · 来源发布 {dateTimeCN(event.source_published_at)}</span><a href={event.sourceUrl} target="_blank" rel="noreferrer" title={event.sourceUrl}>{event.sourceName} ↗</a></div>
       </article>)}</div>
     </section>}
 

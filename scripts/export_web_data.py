@@ -8,12 +8,15 @@ import sys
 from collections import defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from ai_alpha_research.warehouse import read_table, warehouse_path  # noqa: E402
 from ai_alpha_research.demand_chain import build_demand_chain
+
+LOCAL_TZ = ZoneInfo("Asia/Shanghai")
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -60,6 +63,35 @@ def percentile_rank(values, value, higher_is_better=True):
 def average(values):
     clean = [value for value in values if value is not None]
     return sum(clean) / len(clean) if clean else None
+
+
+def normalize_event_brief(brief: dict) -> dict:
+    """Export only the explicit v2 event clocks and source classification.
+
+    The legacy field migration is narrow: old `publishedDate` already denoted
+    the event date and old `publishedAt` already denoted the source timestamp.
+    Missing event dates are never inferred from generation/retrieval metadata.
+    """
+    output = {**brief, "eventSchemaVersion": 2}
+    if not output.get("brief_date"):
+        try:
+            output["brief_date"] = datetime.fromisoformat(output["asOf"].replace("Z", "+00:00")).astimezone(LOCAL_TZ).date().isoformat()
+        except (KeyError, TypeError, ValueError):
+            output["brief_date"] = None
+    events = []
+    for source in brief.get("events", []):
+        event_date = source.get("event_date") or source.get("publishedDate")
+        source_published_at = source.get("source_published_at") or source.get("publishedAt")
+        if not event_date or not source_published_at:
+            continue
+        event = {key: value for key, value in source.items() if key not in {"publishedDate", "publishedAt"}}
+        event["event_date"] = event_date
+        event["source_published_at"] = source_published_at
+        event["sourceType"] = source.get("sourceType") or ("media" if source.get("sourceTier") == "B" else "official")
+        events.append(event)
+    output["events"] = events
+    output["eventCount"] = len(events)
+    return output
 
 
 def latest_raw_payload(source: str, ticker: str):
@@ -448,8 +480,9 @@ def main() -> int:
     daily_brief = json.loads(brief_path.read_text(encoding="utf-8")) if brief_path.exists() else {
         "status": "ready", "headline": "每日 AI 事件采集就绪",
         "summary": "今日事件将按来源、重要性与产业链影响进行整理。",
-        "scheduledTime": "08:00 Asia/Shanghai", "verifiedCount": 0, "events": [],
+        "brief_date": None, "scheduledTime": "08:00 Asia/Shanghai", "verifiedCount": 0, "events": [],
     }
+    daily_brief = normalize_event_brief(daily_brief)
     event_map = defaultdict(list)
     for event in daily_brief.get("events", []):
         for ticker in event.get("affectedCompanies", []):

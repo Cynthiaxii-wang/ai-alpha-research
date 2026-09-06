@@ -14,3 +14,52 @@ Use the structure in `templates/daily_ai_brief.md`. When local project access is
 
 Return the concise executive brief in the scheduled-task result even when the local file write succeeds.
 
+At the very end, append a machine-readable import block exactly between
+`AI_ALPHA_IMPORT_V2_START` and `AI_ALPHA_IMPORT_V2_END`. It must be valid JSON,
+must contain no Markdown inside the markers, and must use this contract:
+
+```json
+{
+  "schemaVersion": "ai-alpha-gpt-brief-v2",
+  "brief_date": "YYYY-MM-DD date of this morning brief in Asia/Shanghai",
+  "asOf": "ISO-8601 timestamp with timezone",
+  "events": [
+    {
+      "id": "stable-kebab-case-id",
+      "event_date": "YYYY-MM-DD date when the described event actually occurred",
+      "source_published_at": "source publication timestamp in ISO-8601 with timezone",
+      "type": "event category",
+      "sourceName": "publisher name",
+      "sourceUrl": "direct HTTPS article, filing, or official-release URL",
+      "supportingUrls": ["direct HTTPS corroborating URL"],
+      "headline": "concise Chinese headline",
+      "summary": "attributed Chinese fact summary",
+      "whatChanged": "what changed versus the prior information set",
+      "expectationGap": "what differs from expectations",
+      "affectedCompanies": ["LISTED_TICKER"],
+      "beneficiaries": ["LISTED_TICKER"],
+      "adverselyAffected": ["LISTED_TICKER"],
+      "impactPath": "adoption → consumption → compute → investment → monetization",
+      "horizon": "expected observation horizon",
+      "pricingStatus": "pricing assessment",
+      "scoreComponents": {"surprise": 0, "fundamental": 0, "tradability": 0, "breadth": 0, "evidence": 0},
+      "confidence": "高/中/低",
+      "nextCatalyst": "dated or observable next check",
+      "falsification": "condition that would invalidate the interpretation"
+    }
+  ]
+}
+```
+
+The five score components retain their maxima of 25/25/20/15/15 and included
+events must total at least 60. Use direct source URLs, never a ChatGPT page,
+search-results page, tracking redirect, or homepage. A Reuters/Bloomberg/FT/WSJ
+item must be explicitly attributed as reporting and must not be rewritten as an
+issuer-confirmed fact. Do not place secrets, private paths, or personal data in
+the import block.
+
+`brief_date`, `event_date`, and `source_published_at` are different fields.
+Never copy the brief generation time, page update time, sitemap `lastmod`, or
+crawler retrieval time into either event date field. If the true event date or
+source publication timestamp cannot be established from the source, exclude the
+event from the import block and put it under unresolved leads instead.
