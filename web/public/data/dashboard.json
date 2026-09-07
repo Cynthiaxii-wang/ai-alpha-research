@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-09-07T00:47:12.180502+00:00",
+    "cutoff": "2026-09-07T00:51:32.208759+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,11 +1186,11 @@
       }
     ]
   },
-  "generatedAt": "2026-09-07T00:47:12.249460+00:00",
+  "generatedAt": "2026-09-07T00:51:32.279592+00:00",
   "asOfDate": "2026-09-04",
   "marketAsOfDate": "2026-09-04",
   "fundamentalAsOfDate": "2026-09-04",
-  "briefGeneratedAt": "2026-09-07T00:09:39.227095+00:00",
+  "briefGeneratedAt": "2026-09-07T08:51:17.535569+08:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -1262,8 +1262,8 @@
       "trend": "Accelerating",
       "flagConclusion": "股价跑赢 QQQ，但基本面得分仍低于强势阈值，存在预期领先风险。",
       "signalChange": "Unchanged",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 2,
+      "latestCatalyst": "TCS 旗下 HyperVault 拟在 Telangana 建设最高 1GW AI 数据中心园区"
     },
     {
       "ticker": "AMD",
@@ -1398,8 +1398,8 @@
       "trend": "Accelerating",
       "flagConclusion": "基本面得分高于样本中位数，但过去 20 个交易日跑输 QQQ。",
       "signalChange": "Unchanged",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 1,
+      "latestCatalyst": "TCS 旗下 HyperVault 拟在 Telangana 建设最高 1GW AI 数据中心园区"
     },
     {
       "ticker": "TSM",
@@ -1534,8 +1534,8 @@
       "trend": "Accelerating",
       "flagConclusion": "基本面得分高于样本中位数，同时过去 20 个交易日跑赢 QQQ。",
       "signalChange": "Unchanged",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 1,
+      "latestCatalyst": "TCS 旗下 HyperVault 拟在 Telangana 建设最高 1GW AI 数据中心园区"
     },
     {
       "ticker": "ANET",
@@ -1602,8 +1602,8 @@
       "trend": "Stable",
       "flagConclusion": "股价跑赢 QQQ，但基本面得分仍低于强势阈值，存在预期领先风险。",
       "signalChange": "NEW",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 1,
+      "latestCatalyst": "TCS 旗下 HyperVault 拟在 Telangana 建设最高 1GW AI 数据中心园区"
     },
     {
       "ticker": "MSFT",
@@ -14601,7 +14601,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-09-07T00:47:08.383113+00:00",
+    "generated_at": "2026-09-07T00:51:28.404712+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -16641,7 +16641,7 @@
     }
   },
   "quality": {
-    "generated_at": "2026-09-07T00:47:03.885889+00:00",
+    "generated_at": "2026-09-07T00:51:24.104664+00:00",
     "status": "pass",
     "status_scope": "engineering_integrity_checks_only",
     "research_readiness": "exploratory_only",
@@ -16712,39 +16712,116 @@
   },
   "dailyBrief": {
     "status": "published",
-    "brief_date": "2026-09-07",
-    "asOf": "2026-09-07T00:09:39.227095+00:00",
-    "eventCount": 0,
+    "brief_date": "2026-09-06",
+    "asOf": "2026-09-06T16:50:00+08:00",
+    "eventCount": 2,
     "verifiedCount": 0,
-    "headline": "今日暂无达到阈值的重要 AI 事件",
-    "summary": "官方来源在当前时间窗内暂无达到研究阈值的新事件。",
+    "headline": "今日识别 2 条重要 AI 事件",
+    "summary": "事件来自人工搬运的结构化 GPT 晨报与官方订阅源；正文为研究摘要，来源等级与时间依据逐条保留。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-09-07T00:09:39.227095+00:00",
-    "events": [],
-    "feedStatus": [
+    "generatedAt": "2026-09-07T08:51:17.535569+08:00",
+    "events": [
       {
-        "source": "OpenAI",
-        "status": "ok",
-        "entries": 1172
+        "id": "tcs-hypervault-telangana-1gw-planned-campus-2026-09-05",
+        "event_date": "2026-09-05",
+        "source_published_at": "2026-09-05T11:35:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "ai_infrastructure_investment",
+        "sourceTier": "B",
+        "sourceType": "media",
+        "sourceName": "Reuters",
+        "sourceHost": "reuters.com",
+        "sourceUrl": "https://www.reuters.com/world/india/indias-tcs-unit-invest-up-74-billion-ai-data-center-campus-2026-09-05/",
+        "supportingUrls": [
+          "https://www.tcs.com/who-we-are/newsroom/press-release/tcs-hypervault-establish-large-scale-ai-data-center-campus-telangana"
+        ],
+        "headline": "TCS 旗下 HyperVault 拟在 Telangana 建设最高 1GW AI 数据中心园区",
+        "summary": "TCS 旗下 HyperVault 已取得 Hyderabad 264 英亩土地，并计划与合作伙伴分阶段建设最高 1GW 的 AI 数据中心园区；投资上限为 7000 亿印度卢比，约 74.1 亿美元。该项目仍处于 planned / phased build-out 阶段，不应计作已投产容量或已发生资本开支。",
+        "whatChanged": "新增一个具备明确容量上限、投资上限和选址的大型印度 AI 基础设施规划，显示超大规模 AI 数据中心建设继续向美国以外地区扩散。",
+        "expectationGap": "市场跟踪通常集中于美国 CSP 的资本开支；该规划提供了印度本地 AI 算力、电力和液冷基础设施需求扩张的新证据，但实际建设节奏仍取决于客户需求。",
+        "affectedCompanies": [
+          "ANET",
+          "AVGO",
+          "MU",
+          "NVDA",
+          "TCS.NS",
+          "VRT"
+        ],
+        "beneficiaries": [
+          "ANET",
+          "AVGO",
+          "MU",
+          "NVDA",
+          "VRT"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "印度 AI 与云需求 → HyperVault 分阶段建设高密度液冷园区 → GPU、网络、存储、电力和冷却设备需求",
+        "horizon": "中长期；随客户签约和分阶段投产兑现",
+        "pricingStatus": "计划与投资上限，尚非已投产容量、已签订单或已实现收入",
+        "score": 88,
+        "scoreComponents": {
+          "surprise": 22,
+          "fundamental": 23,
+          "tradability": 15,
+          "breadth": 14,
+          "evidence": 14
+        },
+        "confidence": "高：Reuters 报道与 TCS 官方公告相互印证；兑现规模和时间仍存在不确定性",
+        "nextCatalyst": "园区客户或算力合同披露、分期建设计划、设备采购、融资结构与首期投产时间",
+        "falsification": "项目缩减或延期、客户需求不足，或后续披露显示 1GW 与 ₹7000 亿仅为远期上限且没有可执行建设安排",
+        "verificationStatus": "attributed_secondary_report",
+        "importMethod": "manual_chatgpt_copy"
       },
       {
-        "source": "Google Blog",
-        "status": "ok",
-        "entries": 20
-      },
-      {
-        "source": "Microsoft Blog",
-        "status": "ok",
-        "entries": 10
-      },
-      {
-        "source": "NVIDIA Newsroom",
-        "status": "ok",
-        "entries": 20
+        "id": "foxconn-august-2026-revenue-ai-server-demand",
+        "event_date": "2026-09-05",
+        "source_published_at": "2026-09-05T08:06:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "monthly_supply_chain_demand",
+        "sourceTier": "B",
+        "sourceType": "media",
+        "sourceName": "Reuters",
+        "sourceHost": "reuters.com",
+        "sourceUrl": "https://www.reuters.com/world/asia-pacific/foxconn-says-third-quarter-outperform-market-expectations-ai-strength-2026-09-05/",
+        "supportingUrls": [
+          "https://www.foxconn.com.tw/en-us/investor-relations/investor-relations-activities/event-calendar"
+        ],
+        "headline": "Foxconn 8 月营收同比增长 51.98%，AI 需求支撑三季度展望",
+        "summary": "Foxconn 8 月营收为 9218 亿新台币，约 291.5 亿美元，同比增长 51.98%，创历年 8 月新高并连续第二个月超过 9000 亿新台币。公司表示，AI 需求和下半年 ICT 旺季推动三季度表现预计优于市场预期。",
+        "whatChanged": "新增一组月频服务器供应链需求验证数据，为季度 CSP Capex 与 GPU 厂商财报之间提供更高频的需求观测。",
+        "expectationGap": "营收高增和管理层展望支持 AI 服务器需求仍强，但月度总营收也包含消费电子与季节性因素，不能直接等同于 AI 服务器收入增速。",
+        "affectedCompanies": [
+          "2317.TW",
+          "DELL",
+          "NVDA",
+          "SMCI"
+        ],
+        "beneficiaries": [
+          "DELL",
+          "NVDA",
+          "SMCI"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "AI 服务器订单与旺季需求 → Foxconn 云网络产品出货和月度营收 → GPU 与服务器供应链需求验证",
+        "horizon": "短中期；重点观察未来 1–3 个月营收和下一次财报",
+        "pricingStatus": "已披露月度公司总营收；AI 贡献未单独量化，三季度为定性展望",
+        "score": 82,
+        "scoreComponents": {
+          "surprise": 18,
+          "fundamental": 23,
+          "tradability": 18,
+          "breadth": 10,
+          "evidence": 13
+        },
+        "confidence": "中高：营收数据为公司披露并由 Reuters 报道；AI 服务器对总营收的独立贡献未披露",
+        "nextCatalyst": "Foxconn 9 月月度营收、三季度业绩、云网络产品收入及主要 AI 服务器客户需求指引",
+        "falsification": "后续月度营收明显降速，或公司披露本次增长主要由非 AI 消费电子旺季贡献",
+        "verificationStatus": "attributed_secondary_report",
+        "importMethod": "manual_chatgpt_copy"
       }
     ],
-    "localizationStatus": "not_needed",
-    "method": "官方 RSS/Atom 来源、时间窗过滤、关键词重要性评分与 URL 去重",
+    "importMethod": "manual_chatgpt_copy",
+    "method": "结构化复制、时间窗校验、来源域名白名单、重要性阈值与 URL 去重",
     "eventSchemaVersion": 2
   },
   "alternativePulse": [
