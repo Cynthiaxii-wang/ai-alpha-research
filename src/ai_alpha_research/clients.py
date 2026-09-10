@@ -5,7 +5,7 @@ from datetime import date
 from typing import Any
 
 from .config import Settings
-from .http import get_json
+from .http import SafeHTTPError, get_json
 
 
 class GitHubClient:
@@ -63,15 +63,28 @@ class MassiveClient:
         # when a batch crosses its rolling request window. Pace calls made by
         # the same ingestion client so a scheduled universe refresh completes
         # consistently instead of leaving a partial snapshot.
-        elapsed = time.monotonic() - self._last_request_at
-        if elapsed < 13.0:
-            time.sleep(13.0 - elapsed)
-        self._last_request_at = time.monotonic()
-        return get_json(
-            f"https://api.massive.com/v2/aggs/ticker/{ticker}/range/1/day/{start.isoformat()}/{end.isoformat()}",
-            params={"adjusted": str(adjusted).lower(), "sort": "asc", "limit": 50000, "apiKey": self.api_key},
-            timeout=90,
-        )
+        base_url = f"https://api.massive.com/v2/aggs/ticker/{ticker}/range/1/day/{start.isoformat()}/{end.isoformat()}"
+        for attempt in range(3):
+            elapsed = time.monotonic() - self._last_request_at
+            if elapsed < 13.0:
+                time.sleep(13.0 - elapsed)
+            self._last_request_at = time.monotonic()
+            try:
+                return get_json(
+                    base_url,
+                    params={"adjusted": str(adjusted).lower(), "sort": "asc", "limit": 50000, "apiKey": self.api_key},
+                    timeout=90,
+                )
+            except SafeHTTPError as exc:
+                message = str(exc)
+                transient = "HTTP 308" in message or "Network failure" in message
+                if not transient or attempt == 2:
+                    raise
+                # Massive intermittently responds with 308 at the edge when a
+                # batch crosses its rolling request window. Re-enter through
+                # the normal pacing gate instead of accepting a partial batch.
+                time.sleep(15.0 * (attempt + 1))
+        raise RuntimeError("unreachable")
 
 
 class AlphaVantageClient:
