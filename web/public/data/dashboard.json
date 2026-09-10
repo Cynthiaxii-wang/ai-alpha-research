@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-09-10T13:18:14.403371+00:00",
+    "cutoff": "2026-09-10T13:21:08.103091+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,11 +1186,11 @@
       }
     ]
   },
-  "generatedAt": "2026-09-10T13:18:14.472528+00:00",
+  "generatedAt": "2026-09-10T13:21:08.172036+00:00",
   "asOfDate": "2026-09-08",
   "marketAsOfDate": "2026-09-08",
   "fundamentalAsOfDate": "2026-09-04",
-  "briefGeneratedAt": "2026-09-10T21:17:58.340938+08:00",
+  "briefGeneratedAt": "2026-09-10T21:20:52.263520+08:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -14601,7 +14601,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-09-10T13:18:09.889849+00:00",
+    "generated_at": "2026-09-10T13:21:03.529383+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -16641,7 +16641,7 @@
     }
   },
   "quality": {
-    "generated_at": "2026-09-10T13:18:04.373770+00:00",
+    "generated_at": "2026-09-10T13:20:58.383579+00:00",
     "status": "pass",
     "status_scope": "engineering_integrity_checks_only",
     "research_readiness": "exploratory_only",
@@ -16719,7 +16719,7 @@
     "headline": "今日识别 5 条重要 AI 事件",
     "summary": "事件来自人工搬运的结构化 GPT 晨报与官方订阅源；正文为研究摘要，来源等级与时间依据逐条保留。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-09-10T21:17:58.340938+08:00",
+    "generatedAt": "2026-09-10T21:20:52.263520+08:00",
     "events": [
       {
         "id": "google-finland-ai-infrastructure-2026-09-09",
@@ -16772,9 +16772,9 @@
         "type": "ai_capex_financing",
         "sourceTier": "B",
         "sourceType": "media",
-        "sourceName": "Reuters",
-        "sourceHost": "reuters.com",
-        "sourceUrl": "https://www.reuters.com/business/finance/amazon-raises-almost-6-billion-first-sterling-bond-sale-lead-manager-says-2026-09-09/",
+        "sourceName": "Reuters（CNA转载）",
+        "sourceHost": "channelnewsasia.com",
+        "sourceUrl": "https://www.channelnewsasia.com/business/amazon-raises-almost-6-billion-first-sterling-bond-sale-lead-manager-says-6373061",
         "supportingUrls": [],
         "headline": "Amazon完成首次英镑债发行，融资42.5亿英镑",
         "summary": "Amazon完成首笔英镑债发行，融资42.5亿英镑（约57.6亿美元），包括3年期12.5亿英镑以及6年、12年和19年期各10亿英镑；最终认购需求超过106.5亿英镑。LSEG数据显示，2026年以来hyperscaler发债已超过2000亿美元。",
