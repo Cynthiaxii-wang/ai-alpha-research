@@ -47,13 +47,14 @@ PRIMARY_DOMAINS = {
     "blog.google", "amazon.com", "aboutamazon.com", "aws.amazon.com",
     "meta.com", "nvidia.com", "amd.com", "broadcom.com", "dell.com",
     "oracle.com", "cloudflare.com", "github.com", "huggingface.co",
-    "tcs.com", "foxconn.com.tw",
+    "tcs.com", "foxconn.com.tw", "fortum.com", "googlecloudpresscorner.com",
     "investor.apple.com", "investor.tsmc.com", "investors.micron.com",
     "investors.arista.com", "investors.palantir.com", "investors.adobe.com",
     "investors.snowflake.com", "investors.mongodb.com", "investors.datadoghq.com",
 }
 SECONDARY_DOMAINS = {
     "reuters.com", "bloomberg.com", "ft.com", "wsj.com", "cnbc.com",
+    "channelnewsasia.com",
 }
 FORBIDDEN_TEXT = (
     "/Users/", "\\Users\\", ".env", "api_key", "apikey", "authorization: bearer",
@@ -263,16 +264,16 @@ def _event_rows(events: list[dict], imported_at: datetime, brief_date: str) -> l
         "source_url": event["sourceUrl"],
         "supporting_urls": json.dumps(event["supportingUrls"], ensure_ascii=False),
         "headline": event["headline"], "fact_summary": event["summary"],
-        "what_changed": event["whatChanged"], "expectation_gap": event["expectationGap"],
+        "what_changed": event["whatChanged"], "expectation_gap": event.get("expectationGap", ""),
         "affected_companies": json.dumps(event["affectedCompanies"], ensure_ascii=False),
         "beneficiaries": json.dumps(event["beneficiaries"], ensure_ascii=False),
-        "adversely_affected": json.dumps(event["adverselyAffected"], ensure_ascii=False),
+        "adversely_affected": json.dumps(event.get("adverselyAffected", []), ensure_ascii=False),
         "transmission_path": event["impactPath"], "impact_horizon": event["horizon"],
         "pricing_status": event["pricingStatus"], "materiality_score": event["score"],
         "confidence_score": event["confidence"],
-        "score_components": json.dumps(event["scoreComponents"], ensure_ascii=False),
+        "score_components": json.dumps(event.get("scoreComponents", {}), ensure_ascii=False),
         "next_catalyst": event["nextCatalyst"], "falsification_condition": event["falsification"],
-        "verification_status": event["verificationStatus"], "import_method": event["importMethod"],
+        "verification_status": event["verificationStatus"], "import_method": event.get("importMethod", "official_feed"),
     } for event in events]
 
 
@@ -303,11 +304,11 @@ def persist_import(text: str, normalized: dict, imported_at: datetime | None = N
         return published <= as_of + timedelta(minutes=15) and as_of - published <= max_age
 
     combined = {
-        event["sourceUrl"]: event
+        event.get("id") or event["sourceUrl"]: event
         for event in existing.get("events", [])
         if isinstance(event, dict) and event.get("sourceUrl") and is_current(event)
     }
-    combined.update({event["sourceUrl"]: event for event in normalized["events"]})
+    combined.update({event.get("id") or event["sourceUrl"]: event for event in normalized["events"]})
     events = sorted(combined.values(), key=lambda row: (row.get("score", 0), row.get("source_published_at", "")), reverse=True)[:5]
     payload = {
         "status": "published", "brief_date": normalized["brief_date"], "asOf": normalized["asOf"], "eventCount": len(events),

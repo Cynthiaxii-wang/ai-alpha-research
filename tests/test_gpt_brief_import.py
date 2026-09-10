@@ -106,6 +106,40 @@ def test_verified_company_domains_are_primary_sources():
         assert result["events"][0]["sourceType"] == "official"
 
 
+def test_verified_energy_and_google_press_domains_are_primary_sources():
+    for url in (
+        "https://www.fortum.com/en/media/2026/09/example",
+        "https://www.googlecloudpresscorner.com/2026-09-09/example",
+    ):
+        value = payload(events=[event(sourceUrl=url)])
+        result = MODULE.validate_and_normalize(value, datetime(2026, 9, 6, 8, 10, tzinfo=TZ))
+        assert result["events"][0]["sourceTier"] == "A"
+        assert result["events"][0]["sourceType"] == "official"
+
+    syndicated = payload(events=[event(sourceUrl="https://www.channelnewsasia.com/business/example")])
+    syndicated_result = MODULE.validate_and_normalize(syndicated, datetime(2026, 9, 6, 8, 10, tzinfo=TZ))
+    assert syndicated_result["events"][0]["sourceTier"] == "B"
+    assert syndicated_result["events"][0]["sourceType"] == "media"
+
+
+def test_event_rows_accept_official_feed_fields_without_manual_only_fields():
+    row = event()
+    row.pop("expectationGap")
+    row.pop("adverselyAffected")
+    row.pop("scoreComponents")
+    rows = MODULE._event_rows([{
+        **row,
+        "sourceTier": "A",
+        "sourceType": "official",
+        "verificationStatus": "official_source",
+        "score": 87,
+    }], datetime(2026, 9, 6, 8, 10, tzinfo=TZ), "2026-09-06")
+    assert rows[0]["expectation_gap"] == ""
+    assert rows[0]["adversely_affected"] == "[]"
+    assert rows[0]["score_components"] == "{}"
+    assert rows[0]["import_method"] == "official_feed"
+
+
 def test_rejects_secrets_before_raw_or_public_write():
     try:
         MODULE.reject_sensitive_text("OPENAI_API_KEY=not-a-real-key")
