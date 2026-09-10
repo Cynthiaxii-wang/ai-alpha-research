@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-09-10T03:31:42.653588+00:00",
+    "cutoff": "2026-09-10T13:18:14.403371+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,11 +1186,11 @@
       }
     ]
   },
-  "generatedAt": "2026-09-10T03:31:42.722660+00:00",
+  "generatedAt": "2026-09-10T13:18:14.472528+00:00",
   "asOfDate": "2026-09-08",
   "marketAsOfDate": "2026-09-08",
   "fundamentalAsOfDate": "2026-09-04",
-  "briefGeneratedAt": "2026-09-10T03:02:20.567158+00:00",
+  "briefGeneratedAt": "2026-09-10T21:17:58.340938+08:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -1738,8 +1738,8 @@
       "trend": "Decelerating",
       "flagConclusion": "基本面得分低于强势阈值，过去 20 个交易日同时跑输 QQQ。",
       "signalChange": "Unchanged",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 1,
+      "latestCatalyst": "Google拟于2027—2028年在芬兰投入至少130亿欧元扩建AI基础设施"
     },
     {
       "ticker": "AMZN",
@@ -1806,8 +1806,8 @@
       "trend": "Decelerating",
       "flagConclusion": "基本面得分低于强势阈值，过去 20 个交易日同时跑输 QQQ。",
       "signalChange": "Unchanged",
-      "eventCount": 0,
-      "latestCatalyst": null
+      "eventCount": 1,
+      "latestCatalyst": "Amazon完成首次英镑债发行，融资42.5亿英镑"
     },
     {
       "ticker": "ORCL",
@@ -14601,7 +14601,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-09-10T03:31:38.166937+00:00",
+    "generated_at": "2026-09-10T13:18:09.889849+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -16641,7 +16641,7 @@
     }
   },
   "quality": {
-    "generated_at": "2026-09-10T03:31:32.878627+00:00",
+    "generated_at": "2026-09-10T13:18:04.373770+00:00",
     "status": "pass",
     "status_scope": "engineering_integrity_checks_only",
     "research_readiness": "exploratory_only",
@@ -16713,14 +16713,179 @@
   "dailyBrief": {
     "status": "published",
     "brief_date": "2026-09-10",
-    "asOf": "2026-09-10T03:02:20.567158+00:00",
-    "eventCount": 1,
-    "verifiedCount": 1,
-    "headline": "今日识别 1 条重要 AI 事件",
-    "summary": "本页仅保留官方来源、处于有效时间窗且达到重要性阈值的事件。",
+    "asOf": "2026-09-10T21:05:00+08:00",
+    "eventCount": 5,
+    "verifiedCount": 2,
+    "headline": "今日识别 5 条重要 AI 事件",
+    "summary": "事件来自人工搬运的结构化 GPT 晨报与官方订阅源；正文为研究摘要，来源等级与时间依据逐条保留。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-09-10T03:02:20.567158+00:00",
+    "generatedAt": "2026-09-10T21:17:58.340938+08:00",
     "events": [
+      {
+        "id": "google-finland-ai-infrastructure-2026-09-09",
+        "event_date": "2026-09-09",
+        "source_published_at": "2026-09-09T07:00:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "ai_infrastructure_capex",
+        "sourceTier": "A",
+        "sourceType": "official",
+        "sourceName": "Google / Fortum",
+        "sourceHost": "fortum.com",
+        "sourceUrl": "https://www.fortum.com/en/media/2026/09/inside-information-fortum-and-google-partner-drive-sustainable-growth-finland-sign-nuclear-power-purchase-agreement",
+        "supportingUrls": [
+          "https://www.googlecloudpresscorner.com/2026-09-09-Google-Deepens-Commitment-to-Finland-with-Two-Year-EUR13-Billion-investment-in-AI-Infrastructure"
+        ],
+        "headline": "Google拟于2027—2028年在芬兰投入至少130亿欧元扩建AI基础设施",
+        "summary": "Google宣布未来两年在芬兰投入至少130亿欧元，用于Hamina扩建及Kajaani、Muhos、Vaala的数据中心和配套基础设施；同时与Fortum签署22年核电购电协议，最多覆盖Loviisa核电站约50%的产能。该金额是多年期投资计划，不计作单季资本开支。",
+        "whatChanged": "芬兰项目由一般选址与建设预期升级为公司正式公布的2027—2028年投资计划，并落实了长期核电供给安排。",
+        "expectationGap": "投资规模及22年电力锁定期限强化了市场对欧洲AI算力扩张和电力约束的判断，但执行仍跨越两年。",
+        "affectedCompanies": [
+          "GOOGL"
+        ],
+        "beneficiaries": [
+          "GOOGL",
+          "NOK"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "Google AI与云需求 → 芬兰数据中心建设 → 长期低碳电力、网络与设备需求 → 欧洲AI算力供给扩张",
+        "horizon": "2027—2028年建设期，长期电力协议延伸至2050年",
+        "pricingStatus": "正式宣布的多年期投资计划与已签署PPA；并非已发生单季Capex",
+        "score": 96,
+        "scoreComponents": {
+          "surprise": 24,
+          "fundamental": 25,
+          "tradability": 18,
+          "breadth": 14,
+          "evidence": 15
+        },
+        "confidence": "高：Google与Fortum官方公告相互印证",
+        "nextCatalyst": "芬兰各站点开工、设备采购、并网及Alphabet后续资本开支披露",
+        "falsification": "项目延期、缩减或取消，或后续公司披露显示130亿欧元中与数据中心和AI基础设施相关的实际投入显著低于计划",
+        "verificationStatus": "primary_source_link_supplied",
+        "importMethod": "manual_chatgpt_copy"
+      },
+      {
+        "id": "amazon-sterling-bond-completed-2026-09-09",
+        "event_date": "2026-09-09",
+        "source_published_at": "2026-09-09T15:46:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "ai_capex_financing",
+        "sourceTier": "B",
+        "sourceType": "media",
+        "sourceName": "Reuters",
+        "sourceHost": "reuters.com",
+        "sourceUrl": "https://www.reuters.com/business/finance/amazon-raises-almost-6-billion-first-sterling-bond-sale-lead-manager-says-2026-09-09/",
+        "supportingUrls": [],
+        "headline": "Amazon完成首次英镑债发行，融资42.5亿英镑",
+        "summary": "Amazon完成首笔英镑债发行，融资42.5亿英镑（约57.6亿美元），包括3年期12.5亿英镑以及6年、12年和19年期各10亿英镑；最终认购需求超过106.5亿英镑。LSEG数据显示，2026年以来hyperscaler发债已超过2000亿美元。",
+        "whatChanged": "事件状态由拟发行升级为正式完成，最终金额、期限结构和订单规模均已确定。",
+        "expectationGap": "约2.5倍认购显示融资渠道仍可用，但需求倍数弱于Alphabet此前英镑债，也提示持续AI资本开支对债券市场容量的压力。",
+        "affectedCompanies": [
+          "AMZN"
+        ],
+        "beneficiaries": [
+          "AMZN"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "AI基础设施资本开支 → 多币种债务融资 → 现金流与资产负债表承压 → AWS算力扩张资金到位",
+        "horizon": "当前融资完成；资金成本与Capex兑现影响延续至中长期",
+        "pricingStatus": "已完成发行，不再标记为拟议或意向",
+        "score": 93,
+        "scoreComponents": {
+          "surprise": 22,
+          "fundamental": 24,
+          "tradability": 19,
+          "breadth": 14,
+          "evidence": 14
+        },
+        "confidence": "高：Reuters援引牵头行及LSEG数据",
+        "nextCatalyst": "Amazon后续债务用途、利息费用、自由现金流和AWS资本开支披露",
+        "falsification": "最终结算金额或分档条款被正式更正，或后续披露表明融资并未支持一般公司用途及AI相关基础设施投入",
+        "verificationStatus": "attributed_secondary_report",
+        "importMethod": "manual_chatgpt_copy"
+      },
+      {
+        "id": "enflame-ipo-pricing-2026-09-09",
+        "event_date": "2026-09-09",
+        "source_published_at": "2026-09-09T12:22:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "ai_chip_ipo",
+        "sourceTier": "B",
+        "sourceType": "media",
+        "sourceName": "Reuters",
+        "sourceHost": "reuters.com",
+        "sourceUrl": "https://www.reuters.com/world/asia-pacific/tencent-backed-enflame-debut-shanghai-friday-912-million-ipo-2026-09-09/",
+        "supportingUrls": [],
+        "headline": "腾讯持股的燧原科技完成IPO定价，收入高增但客户集中度达83.79%",
+        "summary": "燧原科技IPO募集61.2亿元人民币，对应估值约611.9亿元；公司预计2026年前三季度收入23亿至30亿元，同比增长326%至455%，净亏损7亿至8.6亿元。腾讯上市后持股约17.95%，且2025年贡献燧原83.79%的收入。",
+        "whatChanged": "国产AI芯片公司完成IPO定价并披露更具体的收入、亏损、股权和客户集中度信息，计划9月11日在科创板上市。",
+        "expectationGap": "高速收入增长验证国产GPU需求，但极高的单一客户集中度限制了将公司增速外推为行业普遍需求的可靠性。",
+        "affectedCompanies": [
+          "0700.HK",
+          "688801.SS"
+        ],
+        "beneficiaries": [
+          "0700.HK",
+          "688801.SS"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "腾讯AI算力采购 → 燧原收入增长与IPO融资 → 国产GPU研发和供给扩张；客户集中度构成反向风险",
+        "horizon": "9月11日上市为近期催化，收入兑现和客户多元化需中期跟踪",
+        "pricingStatus": "IPO已定价、尚待上市交易；收入为公司预测区间",
+        "score": 89,
+        "scoreComponents": {
+          "surprise": 23,
+          "fundamental": 23,
+          "tradability": 17,
+          "breadth": 12,
+          "evidence": 14
+        },
+        "confidence": "中高：Reuters依据交易所文件报道，预测数据仍需后续财报验证",
+        "nextCatalyst": "9月11日上市表现、后续订单与收入兑现、腾讯之外客户占比变化",
+        "falsification": "IPO延期或取消，或正式披露的募资、估值、收入预测及客户集中度与交易所文件存在重大差异",
+        "verificationStatus": "attributed_secondary_report",
+        "importMethod": "manual_chatgpt_copy"
+      },
+      {
+        "id": "nextdc-convertible-ai-infrastructure-2026-09-09",
+        "event_date": "2026-09-09",
+        "source_published_at": "2026-09-09T08:56:00+00:00",
+        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
+        "type": "data_center_financing",
+        "sourceTier": "B",
+        "sourceType": "media",
+        "sourceName": "Reuters",
+        "sourceHost": "reuters.com",
+        "sourceUrl": "https://www.reuters.com/world/asia-pacific/australian-data-centre-operator-nextdc-raise-795-mln-ai-infrastructure-2026-09-09/",
+        "supportingUrls": [],
+        "headline": "NEXTDC拟发行11亿澳元可转债支持AI数据中心扩张",
+        "summary": "澳大利亚数据中心运营商NEXTDC拟通过可转债融资11亿澳元（约7.96亿美元），为四个多月内第三次融资；资金将用于本地数据中心管线扩张、封顶看涨交易及一般公司用途。公司预计2027财年资本开支52.5亿至57.5亿澳元。",
+        "whatChanged": "NEXTDC再次进入资本市场，为已签约AI驱动容量扩张补充资金，融资频率和2027财年Capex指引均显示建设强度上升。",
+        "expectationGap": "融资验证AI数据中心需求和前置资本需求，但可转债及连续融资也提高了稀释、杠杆和执行风险。",
+        "affectedCompanies": [
+          "NXT.AX"
+        ],
+        "beneficiaries": [
+          "NXT.AX"
+        ],
+        "adverselyAffected": [],
+        "impactPath": "AI容量签约 → 数据中心扩建 → 可转债融资与高资本开支 → 未来机柜和算力供给增加",
+        "horizon": "融资为近期事件，扩建和收入转化为中期过程",
+        "pricingStatus": "拟发行可转债，尚不能视为已完成融资或已投入Capex",
+        "score": 89,
+        "scoreComponents": {
+          "surprise": 21,
+          "fundamental": 24,
+          "tradability": 17,
+          "breadth": 13,
+          "evidence": 14
+        },
+        "confidence": "中高：Reuters援引公司方案，最终融资条款与完成状态待确认",
+        "nextCatalyst": "可转债最终定价与交割、2027财年Capex执行、签约容量转化及电力接入进展",
+        "falsification": "融资被撤回或显著缩减，或扩建项目因电力、水资源、审批及客户需求变化而推迟",
+        "verificationStatus": "attributed_secondary_report",
+        "importMethod": "manual_chatgpt_copy"
+      },
       {
         "id": "68312a7e6309c1c6",
         "event_date": "2026-09-10",
@@ -16751,30 +16916,8 @@
         "verificationStatus": "official_feed"
       }
     ],
-    "feedStatus": [
-      {
-        "source": "OpenAI",
-        "status": "ok",
-        "entries": 1183
-      },
-      {
-        "source": "Google Blog",
-        "status": "ok",
-        "entries": 20
-      },
-      {
-        "source": "Microsoft Blog",
-        "status": "ok",
-        "entries": 10
-      },
-      {
-        "source": "NVIDIA Newsroom",
-        "status": "ok",
-        "entries": 20
-      }
-    ],
-    "localizationStatus": "ok",
-    "method": "官方 RSS/Atom 来源、时间窗过滤、关键词重要性评分与 URL 去重",
+    "importMethod": "manual_chatgpt_copy",
+    "method": "结构化复制、时间窗校验、来源域名白名单、重要性阈值与 URL 去重",
     "eventSchemaVersion": 2
   },
   "alternativePulse": [
