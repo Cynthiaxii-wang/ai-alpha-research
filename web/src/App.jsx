@@ -238,6 +238,34 @@ function Signals({ companies, openCompany }) {
   </section>
 }
 
+function BacktestLineChart({ rows, maxDrawdown }) {
+  if (!rows?.length) return null
+  const width = 760, height = 150, padX = 22, padY = 18
+  const values = [0, ...rows.map(row => row.value)].filter(value => value != null)
+  const min = Math.min(...values), max = Math.max(...values)
+  const x = index => padX + index * (width - padX * 2) / Math.max(rows.length - 1, 1)
+  const y = value => height - padY - (value - min) * (height - padY * 2) / Math.max(max - min, .01)
+  const path = rows.map((row, index) => `${index ? 'L' : 'M'}${x(index)},${y(row.value)}`).join(' ')
+  return <div className="factor-chart cumulative-chart">
+    <div className="factor-subhead"><b>20D 多空组合累计表现</b><span>Q5 − Q1 · 最大回撤 {pct(maxDrawdown)}</span></div>
+    <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="20日定价错位因子多空组合累计表现">
+      <line x1={padX} x2={width-padX} y1={y(0)} y2={y(0)} className="zero-line"/>
+      <path d={path} className="cumulative-line"/>
+      {rows.map((row,index) => <circle key={row.date} cx={x(index)} cy={y(row.value)} r="2.5" className={row.periodSpread >= 0 ? 'gain-dot' : 'loss-dot'}><title>{row.date} · 累计 {pct(row.value)} · 当期 {pct(row.periodSpread)}</title></circle>)}
+    </svg>
+    <div className="chart-axis"><span>{rows[0].date}</span><b className={tone(rows.at(-1)?.value)}>期末 {pct(rows.at(-1)?.value)}</b><span>{rows.at(-1)?.date}</span></div>
+    <p>按约20个交易日再平衡，将每期 Q5−Q1 收益复合连接；这是研究诊断曲线，不含交易成本，也不是可投资净值。</p>
+  </div>
+}
+
+function HorizonSpreadChart({ horizons }) {
+  const rows = ['20','60','120'].map(horizon => ({horizon, value:horizons?.[horizon]?.top_bottom_spread}))
+  const scale = Math.max(.01, ...rows.map(row => Math.abs(row.value || 0)))
+  return <div className="factor-chart spread-chart"><div className="factor-subhead"><b>持有期敏感性</b><span>Q5 − Q1 平均超额收益</span></div>
+    {rows.map(row => <div className="spread-row" key={row.horizon}><span>{row.horizon}D</span><div><i className={tone(row.value)} style={{width:`${Math.max(2,Math.abs(row.value || 0)/scale*48)}%`,left:row.value >= 0 ? '50%' : `${50-Math.max(2,Math.abs(row.value || 0)/scale*48)}%`}}/></div><b className={tone(row.value)}>{pct(row.value)}</b></div>)}
+  </div>
+}
+
 function FactorLab({ hypotheses }) {
   const [tab, setTab] = useState('return_prediction')
   const lab = hypotheses.factor_lab || {fundamental_prediction:[], return_prediction:[]}
@@ -248,15 +276,24 @@ function FactorLab({ hypotheses }) {
     <div className="page-title tech-title"><span className="eyebrow">EVIDENCE, NOT JUST METRICS</span><h1>Factor Lab</h1><p>验证另类数据能否领先基本面，以及公司级错位能否预测未来超额收益。</p></div>
     <div className="factor-tabs"><button className={tab === 'fundamental_prediction' ? 'active' : ''} onClick={() => setTab('fundamental_prediction')}><b>Fundamental Prediction</b><span>替代数据 → Revenue / FCF / EPS</span></button><button className={tab === 'return_prediction' ? 'active' : ''} onClick={() => setTab('return_prediction')}><b>Return Prediction</b><span>研究信号 → Forward Excess Return</span></button></div>
     <div className="factor-lab-grid">{cards.map((card, cardIndex) => {
-      const primary = card.horizons?.['20'] || card.metrics || {}
+      const primary = card.horizons?.[card.primary_horizon] || card.horizons?.['20'] || card.metrics || {}
       const groups = primary.group_returns || card.group_returns || []
       const maxGroup = Math.max(...groups.filter(value => value != null).map(value => Math.abs(value)), .01)
       return <article className={`factor-experiment ${cardIndex === 0 ? 'featured' : ''}`} key={card.experiment_id}>
         <div className="factor-exp-head"><div><span className="experiment-id">{card.experiment_id}</span><span className="factor-kind">{card.category}</span></div><span className={`verdict verdict-${card.verdict.toLowerCase().replaceAll(' ','-')}`}>{card.verdict}</span></div>
         <h2>{card.name}</h2><p className="human-conclusion">{card.conclusion}</p>
+        {card.factor_definition && <div className="factor-definition">
+          <div className="factor-formula"><span>FACTOR CONSTRUCTION</span><b>{card.factor_definition.formula}</b><p>{card.factor_definition.question}</p></div>
+          <div className="factor-logic"><div><span>为什么可能有效？</span>{card.factor_definition.mechanisms.map(item => <p key={item}>＋ {item}</p>)}</div><div><span>为什么可能失效？</span>{card.factor_definition.failure_modes.map(item => <p key={item}>− {item}</p>)}</div></div>
+          <p className="research-warning"><b>研究含义：</b>{card.experiment_id === 'R1' ? '“基本面强、价格弱”只是待检验的反常现象，不自动等于低估。只有未来收益、稳定性及控制变量检验同时支持，才能提高置信度。' : '经济逻辑只说明因子为何值得检验，不等于因子已经有效；最终判断以样本、时点、稳定性和样本外结果为准。'}</p>
+        </div>}
+        {card.backtest_scope && <div className="backtest-scope"><span><small>样本区间</small><b>{card.backtest_scope.start_date} → {card.backtest_scope.end_date}</b></span><span><small>再平衡</small><b>{card.backtest_scope.rebalance_rule}</b></span><span><small>入场规则</small><b>{card.backtest_scope.entry_rule}</b></span><span><small>基准</small><b>{card.backtest_scope.benchmark}</b></span></div>}
         <div className="factor-stat-grid">{Object.entries(metricNames).map(([key,label]) => <div key={key}><span>{label}</span><b className={key !== 'sample_size' ? tone(primary[key]) : ''}>{metricText(key, primary[key])}</b></div>)}</div>
-        {card.horizons && <div className="horizon-strip">{['20','60','120'].map(horizon => { const item=card.horizons[horizon]; return <div key={horizon}><span>{horizon}D FORWARD</span><b className={tone(item?.top_quintile_return)}>{pct(item?.top_quintile_return)}</b><small>Top group · IC {num(item?.rank_ic,3)}</small></div>})}</div>}
-        {groups.length > 0 && <div className="factor-chart"><div className="factor-subhead"><b>Factor Score 分组收益</b><span>Q5 − Q1 {pct(primary.top_bottom_spread)}</span></div><div className="quintile-chart">{groups.map((value,index) => <div key={index}><span className="bar-space"><i className={tone(value)} style={{height:`${Math.max(5, Math.abs(value || 0)/maxGroup*64)}px`}}/></span><b>Q{index+1}</b><small className={tone(value)}>{pct(value)}</small></div>)}</div></div>}
+        {card.horizons && <div className="horizon-strip">{['20','60','120'].map(horizon => { const item=card.horizons[horizon]; return <div key={horizon} className={card.primary_horizon === horizon ? 'primary' : ''}><span>{horizon}D FORWARD {card.primary_horizon === horizon ? '· 主窗口' : ''}</span><b className={tone(item?.top_bottom_spread)}>Q5−Q1 {pct(item?.top_bottom_spread)}</b><small>Q5 {pct(item?.top_quintile_return)} · Q1 {pct(item?.bottom_quintile_return)} · IC {num(item?.rank_ic,3)}</small></div>})}</div>}
+        {groups.length > 0 && <div className="factor-chart"><div className="factor-subhead"><b>{card.primary_horizon}D Factor Score 分组收益</b><span>单调性 {primary.monotonic_steps ?? '—'} / 4 · Q5 − Q1 {pct(primary.top_bottom_spread)}</span></div><div className="quintile-chart">{groups.map((value,index) => <div key={index}><span className="bar-space"><i className={tone(value)} style={{height:`${Math.max(5, Math.abs(value || 0)/maxGroup*64)}px`}}/></span><b>Q{index+1}</b><small className={tone(value)}>{pct(value)}</small></div>)}</div></div>}
+        {card.horizons && <HorizonSpreadChart horizons={card.horizons}/>}
+        {card.cumulative_20d?.length > 0 && <BacktestLineChart rows={card.cumulative_20d} maxDrawdown={card.max_drawdown_20d}/>}
+        {card.control_variants?.length > 0 && <div className="factor-chart control-variants"><div className="factor-subhead"><b>控制变量稳健性</b><span>同一信号的三种口径</span></div><div className="control-table"><div className="control-head"><span>口径</span><span>20D IC / Spread</span><span>60D IC / Spread</span><span>120D IC / Spread</span></div>{card.control_variants.map(variant => <div key={variant.id}><span><b>{variant.name}</b><small>{variant.description}</small></span>{['20','60','120'].map(horizon => <span key={horizon}><b className={tone(variant.horizons?.[horizon]?.top_bottom_spread)}>{num(variant.horizons?.[horizon]?.rank_ic,3)} / {pct(variant.horizons?.[horizon]?.top_bottom_spread)}</b><small>N={variant.horizons?.[horizon]?.sample_size ?? '—'}</small></span>)}</div>)}</div><p className="control-note">若加入同层、估值和波动率控制后方向消失，说明原结果更可能来自行业、估值或风险暴露，而不是独立的定价错位因子。</p></div>}
         {card.ic_time_series?.length > 0 && <div className="factor-chart"><div className="factor-subhead"><b>季度 IC 稳定性</b><span>按20D检验</span></div><div className="ic-series">{card.ic_time_series.map(item => <div key={item.period}><span>{item.period}</span><i><b className={tone(item.value)} style={{width:`${Math.min(100,Math.abs(item.value||0)*180)}%`}}/></i><strong className={tone(item.value)}>{num(item.value,2)}</strong></div>)}</div></div>}
         {card.lead_lag?.length > 0 && <div className="lead-lag"><div className="factor-subhead"><b>Lead–Lag Test</b><span>领先窗口比较</span></div>{card.lead_lag.map(item => <div key={item.label}><span>{item.label}</span><b className={tone(item.value)}>{num(item.value,3)}</b></div>)}</div>}
         {card.monitoring_metrics?.length > 0 && <div className="monitoring-evidence"><div className="factor-subhead"><b>当前数据覆盖</b><span>只展示已取得的数据</span></div><div>{card.monitoring_metrics.map(item => <span key={item.label}><small>{item.label}</small><b>{item.value}</b></span>)}</div></div>}

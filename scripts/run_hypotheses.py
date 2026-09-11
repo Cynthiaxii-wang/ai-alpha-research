@@ -6,6 +6,7 @@ import math
 import statistics
 import sys
 import calendar
+import csv
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -31,15 +32,67 @@ def percentile_map(values: dict[str, float]) -> dict[str, float]:
     return {ticker: index / (len(ordered) - 1) for index, (ticker, _) in enumerate(ordered)}
 
 
-def fundamental_dislocation_test(features: list[dict], targets: list[dict]) -> dict:
-    """Reconstruct the Signal Monitor gap on spaced historical rebalance dates."""
+def grouped_percentile_map(values: dict[str, float], groups: dict[str, str]) -> dict[str, float]:
+    output = {}
+    grouped = defaultdict(dict)
+    for ticker, value in values.items():
+        grouped[groups.get(ticker, "unclassified")][ticker] = value
+    for rows in grouped.values():
+        output.update(percentile_map(rows))
+    return output
+
+
+def ols_residuals(values: dict[str, float], controls: list[dict[str, float]]) -> dict[str, float]:
+    """Return cross-sectional OLS residuals using a tiny ridge for singular ranks."""
+    tickers = [ticker for ticker in values if all(ticker in control for control in controls)]
+    if len(tickers) < len(controls) + 4:
+        return {}
+    width = len(controls) + 1
+    matrix = [[0.0 for _ in range(width)] for _ in range(width)]
+    vector = [0.0 for _ in range(width)]
+    rows = []
+    for ticker in tickers:
+        x = [1.0] + [control[ticker] for control in controls]
+        y = values[ticker]
+        rows.append((ticker, x, y))
+        for i in range(width):
+            vector[i] += x[i] * y
+            for j in range(width):
+                matrix[i][j] += x[i] * x[j]
+    for i in range(1, width):
+        matrix[i][i] += 1e-8
+    augmented = [matrix[i] + [vector[i]] for i in range(width)]
+    for column in range(width):
+        pivot = max(range(column, width), key=lambda row: abs(augmented[row][column]))
+        if abs(augmented[pivot][column]) < 1e-12:
+            return {}
+        augmented[column], augmented[pivot] = augmented[pivot], augmented[column]
+        scale = augmented[column][column]
+        augmented[column] = [value / scale for value in augmented[column]]
+        for row in range(width):
+            if row == column:
+                continue
+            multiplier = augmented[row][column]
+            augmented[row] = [
+                augmented[row][position] - multiplier * augmented[column][position]
+                for position in range(width + 1)
+            ]
+    beta = [augmented[index][-1] for index in range(width)]
+    return {
+        ticker: y - sum(beta[position] * x[position] for position in range(width))
+        for ticker, x, y in rows
+    }
+
+
+def fundamental_dislocation_test(features: list[dict], targets: list[dict], stages: dict[str, str]) -> dict:
+    """Test raw, within-stage and controlled versions of the Signal Monitor gap."""
     histories = defaultdict(list)
     momentum_by_date = defaultdict(dict)
     for row in features:
         value = parse_float(row["feature_value"])
         if value is None:
             continue
-        if row["feature_name"] in {"revenue_yoy", "fcf_margin"}:
+        if row["feature_name"] in {"revenue_yoy", "fcf_margin", "price_to_sales_filing_basis", "realized_vol_20d"}:
             histories[(row["ticker"], row["feature_name"])].append((row["feature_date"], value))
         elif row["feature_name"] == "momentum_20d":
             momentum_by_date[row["feature_date"]][row["ticker"]] = value
@@ -49,8 +102,6 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict]) -> d
     eligible_dates = sorted(day for day, values in momentum_by_date.items() if len(values) >= 15)
     rebalance_dates = eligible_dates[::20]
     samples = []
-    date_ics = {20: [], 60: [], 120: []}
-    group_values = {20: defaultdict(list), 60: defaultdict(list), 120: defaultdict(list)}
 
     def latest(ticker: str, name: str, day: str):
         matches = [value for observed, value in histories.get((ticker, name), []) if observed <= day]
@@ -63,54 +114,124 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict]) -> d
         complete = [ticker for ticker in momentum if revenue[ticker] is not None and fcf[ticker] is not None and (ticker, day) in target_map]
         if len(complete) < 10:
             continue
-        revenue_rank = percentile_map({ticker: revenue[ticker] for ticker in complete})
+        complete_values = {ticker: revenue[ticker] for ticker in complete}
+        revenue_rank = percentile_map(complete_values)
         fcf_rank = percentile_map({ticker: fcf[ticker] for ticker in complete})
         market_rank = percentile_map({ticker: momentum[ticker] for ticker in complete})
+        stage_revenue_rank = grouped_percentile_map(complete_values, stages)
+        stage_fcf_rank = grouped_percentile_map({ticker: fcf[ticker] for ticker in complete}, stages)
+        stage_market_rank = grouped_percentile_map({ticker: momentum[ticker] for ticker in complete}, stages)
+        raw_gap = {ticker: (revenue_rank[ticker] + fcf_rank[ticker]) / 2 - market_rank[ticker] for ticker in complete}
+        stage_gap = {ticker: (stage_revenue_rank[ticker] + stage_fcf_rank[ticker]) / 2 - stage_market_rank[ticker] for ticker in complete}
+        valuation = {ticker: latest(ticker, "price_to_sales_filing_basis", day) for ticker in complete}
+        volatility = {ticker: latest(ticker, "realized_vol_20d", day) for ticker in complete}
+        controlled_tickers = [ticker for ticker in complete if valuation[ticker] is not None and volatility[ticker] is not None]
+        valuation_rank = grouped_percentile_map({ticker: valuation[ticker] for ticker in controlled_tickers}, stages)
+        volatility_rank = grouped_percentile_map({ticker: volatility[ticker] for ticker in controlled_tickers}, stages)
+        controlled_gap = ols_residuals(stage_gap, [valuation_rank, volatility_rank])
         cross_section = []
         for ticker in complete:
-            gap = (revenue_rank[ticker] + fcf_rank[ticker]) / 2 - market_rank[ticker]
             target = target_map[(ticker, day)]
-            row = {"ticker": ticker, "date": day, "gap": gap}
+            row = {
+                "ticker": ticker, "date": day, "stage": stages.get(ticker, "unclassified"),
+                "raw_gap": raw_gap[ticker], "stage_gap": stage_gap[ticker],
+                "controlled_gap": controlled_gap.get(ticker),
+            }
             for horizon in (20, 60, 120):
                 row[f"ret{horizon}"] = parse_float(target.get(f"excess_return_{horizon}d"))
             samples.append(row)
             cross_section.append(row)
-        cross_section.sort(key=lambda row: row["gap"])
-        size = len(cross_section)
-        for index, row in enumerate(cross_section):
-            quintile = min(5, math.floor(index * 5 / size) + 1)
-            for horizon in (20, 60, 120):
-                value = row[f"ret{horizon}"]
-                if value is not None:
-                    group_values[horizon][quintile].append(value)
         for horizon in (20, 60, 120):
-            mature = [row for row in cross_section if row[f"ret{horizon}"] is not None]
-            if len(mature) >= 8:
-                date_ics[horizon].append((day, spearman([row["gap"] for row in mature], [row[f"ret{horizon}"] for row in mature])))
+            stage_returns = defaultdict(list)
+            for row in cross_section:
+                if row[f"ret{horizon}"] is not None:
+                    stage_returns[row["stage"]].append(row[f"ret{horizon}"])
+            stage_means = {stage: mean(values) for stage, values in stage_returns.items()}
+            for row in cross_section:
+                value = row[f"ret{horizon}"]
+                row[f"controlled_ret{horizon}"] = value - stage_means[row["stage"]] if value is not None and row["stage"] in stage_means else None
 
-    horizon_results = {}
-    for horizon in (20, 60, 120):
-        mature = [row for row in samples if row[f"ret{horizon}"] is not None]
-        ics = [value for _, value in date_ics[horizon] if value is not None]
-        groups = [mean(group_values[horizon].get(group, [])) for group in range(1, 6)]
-        top_bottom = groups[4] - groups[0] if groups[4] is not None and groups[0] is not None else None
-        horizon_results[str(horizon)] = {
-            "sample_size": len(mature),
-            "rank_ic": mean(ics),
-            "ic_stability": sum(value > 0 for value in ics) / len(ics) if ics else None,
-            "hit_rate": mean(1.0 if row["gap"] * row[f"ret{horizon}"] > 0 else 0.0 for row in mature if row["gap"] != 0),
-            "top_bottom_spread": top_bottom,
-            "group_returns": groups,
-            "top_quintile_return": groups[4],
-            "rebalance_periods": len(ics),
-        }
+    def summarize_variant(score_key: str, controlled_return: bool = False) -> dict:
+        date_ics = {20: [], 60: [], 120: []}
+        group_values = {20: defaultdict(list), 60: defaultdict(list), 120: defaultdict(list)}
+        date_spreads = {20: [], 60: [], 120: []}
+        by_date = defaultdict(list)
+        for row in samples:
+            if row.get(score_key) is not None:
+                by_date[row["date"]].append(row)
+        for day, rows in sorted(by_date.items()):
+            for horizon in (20, 60, 120):
+                return_key = f"controlled_ret{horizon}" if controlled_return else f"ret{horizon}"
+                mature = [row for row in rows if row.get(return_key) is not None]
+                if len(mature) < 8:
+                    continue
+                ic = spearman([row[score_key] for row in mature], [row[return_key] for row in mature])
+                if ic is not None:
+                    date_ics[horizon].append((day, ic))
+                ordered = sorted(mature, key=lambda row: row[score_key])
+                size = len(ordered)
+                dated_groups = defaultdict(list)
+                for index, row in enumerate(ordered):
+                    quintile = min(5, math.floor(index * 5 / size) + 1)
+                    value = row[return_key]
+                    group_values[horizon][quintile].append(value)
+                    dated_groups[quintile].append(value)
+                q1, q5 = mean(dated_groups[1]), mean(dated_groups[5])
+                if q1 is not None and q5 is not None:
+                    date_spreads[horizon].append({"date": day, "spread": q5 - q1})
+        horizon_results = {}
+        for horizon in (20, 60, 120):
+            return_key = f"controlled_ret{horizon}" if controlled_return else f"ret{horizon}"
+            mature = [row for row in samples if row.get(score_key) is not None and row.get(return_key) is not None]
+            ics = [value for _, value in date_ics[horizon] if value is not None]
+            groups = [mean(group_values[horizon].get(group, [])) for group in range(1, 6)]
+            top_bottom = groups[4] - groups[0] if groups[4] is not None and groups[0] is not None else None
+            monotonic_steps = sum(
+                groups[index] is not None and groups[index - 1] is not None and groups[index] >= groups[index - 1]
+                for index in range(1, 5)
+            )
+            horizon_results[str(horizon)] = {
+                "sample_size": len(mature), "rank_ic": mean(ics),
+                "ic_stability": sum(value > 0 for value in ics) / len(ics) if ics else None,
+                "hit_rate": mean(1.0 if row[score_key] * row[return_key] > 0 else 0.0 for row in mature if row[score_key] != 0),
+                "top_bottom_spread": top_bottom, "group_returns": groups,
+                "bottom_quintile_return": groups[0], "top_quintile_return": groups[4],
+                "monotonic_steps": monotonic_steps, "rebalance_periods": len(ics),
+            }
+        cumulative = 1.0
+        cumulative_series = []
+        peak = 1.0
+        max_drawdown = 0.0
+        for item in date_spreads[20]:
+            cumulative *= 1 + item["spread"]
+            peak = max(peak, cumulative)
+            max_drawdown = min(max_drawdown, cumulative / peak - 1)
+            cumulative_series.append({"date": item["date"], "value": cumulative - 1, "periodSpread": item["spread"]})
+        return {"horizons": horizon_results, "period_spreads": date_spreads, "cumulative_20d": cumulative_series, "max_drawdown_20d": max_drawdown}
+
+    variants = {
+        "raw_cross_chain": summarize_variant("raw_gap"),
+        "within_stage": summarize_variant("stage_gap"),
+        "controlled": summarize_variant("controlled_gap", controlled_return=True),
+    }
+    horizon_results = variants["within_stage"]["horizons"]
+    primary_ic_rows = []
+    by_date = defaultdict(list)
+    for row in samples:
+        if row.get("stage_gap") is not None and row.get("ret20") is not None:
+            by_date[row["date"]].append(row)
+    for day, rows in sorted(by_date.items()):
+        if len(rows) >= 8:
+            value = spearman([row["stage_gap"] for row in rows], [row["ret20"] for row in rows])
+            if value is not None:
+                primary_ic_rows.append((day, value))
     quarterly = defaultdict(list)
-    for day, value in date_ics[20]:
+    for day, value in primary_ic_rows:
         if value is not None:
             quarter = f"{day[:4]}Q{(int(day[5:7]) - 1) // 3 + 1}"
             quarterly[quarter].append(value)
     ic_series = [{"period": period, "value": mean(values)} for period, values in sorted(quarterly.items())]
-    primary = horizon_results["20"]
+    primary = horizon_results["60"]
     rank_ic = primary["rank_ic"]
     stability = primary["ic_stability"]
     n = primary["sample_size"]
@@ -125,8 +246,8 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict]) -> d
     else:
         verdict = "Weak"
     conclusion = (
-        f"历史20日 Rank IC 为 {rank_ic:+.2f}，正向 IC 期占比 {stability:.0%}；"
-        f"最高组减最低组的平均超额收益为 {primary['top_bottom_spread']:+.1%}。"
+        f"同层中性Gap的60日 Rank IC 为 {rank_ic:+.2f}，正向 IC 期占比 {stability:.0%}；"
+        f"Q5减Q1的60日平均超额收益为 {primary['top_bottom_spread']:+.1%}。"
         if rank_ic is not None and stability is not None and primary["top_bottom_spread"] is not None
         else "当前成熟样本不足，暂不能判断定价错位是否具有稳定收益预测能力。"
     )
@@ -135,11 +256,30 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict]) -> d
         "name": "Fundamental Dislocation Factor",
         "category": "Return Prediction",
         "verdict": verdict,
+        "primary_horizon": "60",
         "horizons": horizon_results,
         "ic_time_series": ic_series,
+        "cumulative_20d": variants["within_stage"]["cumulative_20d"],
+        "max_drawdown_20d": variants["within_stage"]["max_drawdown_20d"],
+        "control_variants": [
+            {"id": "raw", "name": "原始全链Gap", "description": "全样本统一排名，仅控制QQQ市场收益", "horizons": variants["raw_cross_chain"]["horizons"]},
+            {"id": "stage", "name": "同层中性Gap", "description": "基本面与价格均在上游/中游/下游内部排名", "horizons": variants["within_stage"]["horizons"]},
+            {"id": "controlled", "name": "估值与波动率控制", "description": "同层Gap剔除P/S和20日波动率暴露，未来收益再做同层中性", "horizons": variants["controlled"]["horizons"]},
+        ],
+        "factor_definition": {
+            "formula": "Gap = 0.5 × Revenue YoY分位 + 0.5 × FCF Margin分位 − 20D价格动量分位",
+            "question": "基本面仍强、但近期相对价格表现弱的公司，是否会在信息扩散后获得未来超额收益？",
+            "mechanisms": ["财报信息扩散慢于短期资金流", "指数、仓位或风险冲击造成非基本面抛售", "基本面持续兑现后触发估值修复"],
+            "failure_modes": ["滞后财务数据尚未反映订单或指引恶化", "高质量公司仍可能处于估值压缩周期", "所谓错位可能是市场提前识别了基本面拐点"],
+        },
+        "backtest_scope": {
+            "start_date": min((row["date"] for row in samples), default=None),
+            "end_date": max((row["date"] for row in samples), default=None),
+            "rebalance_rule": "每20个交易日", "entry_rule": "信号日后的下一交易日收盘", "benchmark": "QQQ超额收益",
+        },
         "conclusion": conclusion,
-        "next_action": "加入行业中性化、交易成本，并扩展公司与历史区间。",
-        "method": "每20个交易日重建横截面；Gap = Revenue/FCF质量分位均值 − 20D动量分位；次日收盘入场，相对QQQ。",
+        "next_action": "继续扩展历史区间与公司数，加入交易成本、规模和更细行业控制；当前结果只能用于证伪或生成研究问题。",
+        "method": "每20个交易日重建横截面；主结果使用同层Gap，次日收盘入场并观察20D/60D/120D相对QQQ收益。控制版本进一步剔除P/S、20日波动率及同层共同收益。",
     }
 
 
@@ -397,6 +537,12 @@ def factor_lab_payload(h1: dict, h2: dict, h3: dict, dislocation: dict, token_us
                     {"label": "Radar 产品", "value": str(len({row.get('product_id') for row in product_ranks}))},
                     {"label": "每产品快照", "value": str(radar_depth)},
                 ],
+                "factor_definition": {
+                    "formula": "Adoption Change = log(1 + 当月Commit) − log(1 + 前3个月平均Commit)",
+                    "question": "开发者开源活动的加速，是否领先下一次盈利变化？",
+                    "mechanisms": ["开发采用可能领先商业采购", "生态活跃度可能降低产品获客成本"],
+                    "failure_modes": ["开源仓库不等于付费产品使用", "公司选择性开源会改变Commit口径"],
+                },
                 "next_action": "每日积累Radar域名排名；Google Trends获批后补充五年产品搜索历史。", "method": h1["signal_definition"] + "；Cloudflare Radar仅作为广义网页关注度代理。",
             },
             {
@@ -411,6 +557,12 @@ def factor_lab_payload(h1: dict, h2: dict, h3: dict, dislocation: dict, token_us
                     {"label": "+2Q FCF Margin", "value": h2["lead_lag"]["+2Q_fcf"]["rank_ic"]},
                 ],
                 "segment_results": h2["segment_results"],
+                "factor_definition": {
+                    "formula": "Capex YoY(t) → Revenue YoY / FCF Margin(t+1Q, t+2Q)",
+                    "question": "本期资本开支增长，能否转化为未来收入增长和现金流？",
+                    "mechanisms": ["新增算力形成可售云容量", "基础设施投资向芯片、网络和存储收入传导"],
+                    "failure_modes": ["总Capex包含非AI投资", "建设周期、利用率和折旧可能延迟或侵蚀回报"],
+                },
                 "conclusion": f"季度总Capex增长对下一季度收入增长的平均横截面 Rank IC 为 {capex_ic:+.2f}，正向季度占比 {h2['lead_lag']['+1Q_revenue']['ic_stability']:.0%}（{h2['sample_size']}个公司季度）。" if capex_ic is not None and h2["lead_lag"]["+1Q_revenue"]["ic_stability"] is not None else "季度样本不足，暂不能判断Capex转化效率。",
                 "next_action": "补充CSP云收入与AI专属Capex，加入行业和宏观控制。", "method": h2["warning"],
             },
@@ -428,6 +580,12 @@ def factor_lab_payload(h1: dict, h2: dict, h3: dict, dislocation: dict, token_us
                     {"label": "Provider数", "value": str(token_usage["provider_count"])},
                     {"label": "最新领先", "value": f"{token_usage['leading_provider'] or '—'} {token_usage['leading_share']:.1%}" if token_usage["leading_share"] is not None else "—"},
                 ],
+                "factor_definition": {
+                    "formula": "OpenRouter Token周度增长(t) → Cloud Revenue YoY(t+1Q, t+2Q)",
+                    "question": "模型调用量变化，是否领先云平台收入兑现？",
+                    "mechanisms": ["Token消费直接占用推理算力", "调用量扩张可能先于季度财报披露"],
+                    "failure_modes": ["OpenRouter并非全市场", "模型迁移、降价和缓存会切断Token与收入关系"],
+                },
                 "conclusion": f"已完成Token增长对Cloud公司收入的+1Q/+2Q试算，但+1Q只有{token_lead_lag['sample_size']}个完整季度配对，不能据此判断预测能力。",
                 "next_action": "继续积累季度历史，并以公司披露的Cloud/AI分部收入替代总收入。",
                 "method": "OpenRouter Top 50模型每日Token总量，历史起于2025-01-01；仅代表OpenRouter平台，不代表全市场，跨Provider Token口径不可机械比较。",
@@ -440,6 +598,12 @@ def factor_lab_payload(h1: dict, h2: dict, h3: dict, dislocation: dict, token_us
                 "verdict": "Needs Data", "primary_horizon": "20D / 60D",
                 "metrics": {"rank_ic": None, "ic_stability": None, "hit_rate": None, "sample_size": 0, "top_bottom_spread": None},
                 "ic_time_series": [], "group_returns": [], "lead_lag": [],
+                "factor_definition": {
+                    "formula": "EPS Revision 30D = 当前一致预期EPS ÷ 30日前一致预期EPS − 1",
+                    "question": "分析师盈利预期上调，是否领先未来20D/60D超额收益？",
+                    "mechanisms": ["盈利信息逐步进入卖方模型", "连续上调可能强化机构配置"],
+                    "failure_modes": ["修正可能已被价格提前交易", "缺乏可靠PIT共识历史会产生回看偏差"],
+                },
                 "conclusion": "当前可监测30D一致预期修正，但每日point-in-time历史刚开始积累。", "next_action": "持续每日归档后再进入历史收益检验。", "method": "Next-quarter EPS estimate change over trailing 30 days.",
             },
             {
@@ -447,6 +611,12 @@ def factor_lab_payload(h1: dict, h2: dict, h3: dict, dislocation: dict, token_us
                 "verdict": "Rejected" if composite_ic is not None and composite_ic < -0.05 else "Weak", "primary_horizon": "20D",
                 "metrics": {"rank_ic": composite_ic, "ic_stability": None, "hit_rate": None, "sample_size": h3["sample_size_20d"], "top_bottom_spread": (h3["composite_qualified_mean_excess_20d"] - h3["composite_comparison_mean_excess_20d"]) if h3["composite_qualified_mean_excess_20d"] is not None and h3["composite_comparison_mean_excess_20d"] is not None else None},
                 "ic_time_series": [], "group_returns": [], "lead_lag": [],
+                "factor_definition": {
+                    "formula": "正EPS Surprise + 正Revenue增长 + 正FCF Margin + P/S不高于当日中位数",
+                    "question": "盈利超预期、质量较好且估值较低的组合，是否获得未来20D超额收益？",
+                    "mechanisms": ["盈利兑现与合理估值共同降低预期落差", "多条件交集可能过滤低质量便宜股"],
+                    "failure_modes": ["EPS历史共识并非已验证PIT数据", "二元阈值会丢失强弱程度并造成样本不稳"],
+                },
                 "conclusion": "现有惊喜+基本面+估值规则未显示稳定的20日超额收益。", "next_action": "移除历史共识污染，改用正式EPS Revision并做行业中性化。", "method": h3["composite_rule"],
             },
         ],
@@ -694,7 +864,9 @@ def main() -> int:
     h1 = developer_activity_to_earnings_test(monthly, earnings)
     h2 = capex_conversion_quarterly_test(quarterly, companies)
     h3 = earnings_surprise_test(features, targets)
-    dislocation = fundamental_dislocation_test(features, targets)
+    with (PROJECT_ROOT / "config" / "research_universe.csv").open(encoding="utf-8", newline="") as handle:
+        stages = {row["ticker"]: row.get("primary_stage") or "unclassified" for row in csv.DictReader(handle)}
+    dislocation = fundamental_dislocation_test(features, targets, stages)
     token_usage = token_usage_summary(token_rows)
     token_lead_lag = token_to_cloud_revenue_test(token_rows, quarterly, companies)
     chain_transmission = value_chain_transmission_test(quarterly, companies)
