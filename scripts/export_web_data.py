@@ -15,6 +15,17 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from ai_alpha_research.warehouse import read_table, warehouse_path  # noqa: E402
 from ai_alpha_research.demand_chain import build_demand_chain
+from ai_alpha_research.scoring import (  # noqa: E402
+    FUNDAMENTAL_SCORE_VERSION,
+    FUNDAMENTAL_WEIGHTS,
+    MIN_SCORE_COVERAGE,
+    MARKET_SCORE_VERSION,
+    MARKET_WEIGHTS,
+    STRONG_FUNDAMENTAL_THRESHOLD,
+    STRONG_MARKET_THRESHOLD,
+    classify_signal,
+    weighted_score,
+)
 
 LOCAL_TZ = ZoneInfo("Asia/Shanghai")
 
@@ -173,6 +184,12 @@ def build_alternative_pulse(rows: list[dict], as_of: str) -> list[dict]:
 
 def main() -> int:
     config = read_csv(PROJECT_ROOT / "config" / "research_universe.csv")
+    # Keep the public product focused while allowing a broader research-only
+    # universe to improve cross-sectional tests.
+    config = [
+        row for row in config
+        if str(row.get("include_in_dashboard") or "true").strip().lower() == "true"
+    ]
     market = read_csv(PROJECT_ROOT / "data" / "standardized" / "market_daily.csv")
     annual = read_csv(PROJECT_ROOT / "data" / "standardized" / "fundamental_annual.csv")
     quarterly = read_csv(PROJECT_ROOT / "data" / "standardized" / "fundamental_quarterly.csv")
@@ -220,7 +237,7 @@ def main() -> int:
         if row["ticker"] not in latest_earnings or row["reported_date"] > latest_earnings[row["ticker"]]["reported_date"]:
             latest_earnings[row["ticker"]] = row
     developer_by_ticker = {row["ticker"]: row for row in developer}
-    wanted_features = {"momentum_20d", "realized_vol_20d", "price_to_sales_filing_basis", "price_to_fcf_filing_basis"}
+    wanted_features = {"momentum_20d", "momentum_60d", "realized_vol_20d", "price_to_sales_filing_basis", "price_to_fcf_filing_basis"}
     latest_features = {}
     ps_history = defaultdict(list)
     for row in features:
@@ -240,6 +257,10 @@ def main() -> int:
     if len(qqq_rows) >= 21:
         current, base = number(qqq_rows[-1]["close"]), number(qqq_rows[-21]["close"])
         qqq_momentum_20d = current / base - 1 if current and base else None
+    qqq_momentum_60d = None
+    if len(qqq_rows) >= 61:
+        current, base = number(qqq_rows[-1]["close"]), number(qqq_rows[-61]["close"])
+        qqq_momentum_60d = current / base - 1 if current and base else None
     companies = []
     price_series = {}
     for item in config:
@@ -248,9 +269,15 @@ def main() -> int:
         latest = rows[-1] if rows else {}
         close = number(latest.get("close"))
         momentum = number((latest_features.get((ticker, "momentum_20d")) or {}).get("feature_value"))
+        momentum_60d = number((latest_features.get((ticker, "momentum_60d")) or {}).get("feature_value"))
         fundamental = latest_quarterly.get(ticker, latest_annual.get(ticker, {}))
         history = quarterly_history.get(ticker, annual_history.get(ticker, []))
         prior_fundamental = history[-2] if len(history) >= 2 else {}
+        prior_year_fundamental = None
+        if fundamental.get("period_end"):
+            current_end = date.fromisoformat(fundamental["period_end"])
+            candidates = [row for row in history[:-1] if row.get("period_end") and 330 <= (current_end - date.fromisoformat(row["period_end"])).days <= 400]
+            prior_year_fundamental = min(candidates, key=lambda row: abs((current_end - date.fromisoformat(row["period_end"])).days - 365), default=None)
         event = latest_earnings.get(ticker, {})
         dev = developer_by_ticker.get(ticker, {})
         ps = number((latest_features.get((ticker, "price_to_sales_filing_basis")) or {}).get("feature_value"))
@@ -259,7 +286,7 @@ def main() -> int:
         fcf_margin = number(fundamental.get("fcf_margin"))
         prior_revenue_yoy = number(prior_fundamental.get("revenue_yoy"))
         prior_capex_yoy = number(prior_fundamental.get("capex_yoy"))
-        prior_fcf_margin = number(prior_fundamental.get("fcf_margin"))
+        prior_fcf_margin = number((prior_year_fundamental or {}).get("fcf_margin"))
         revenue_acceleration = number(fundamental.get("revenue_growth_acceleration"))
         if revenue_acceleration is None:
             revenue_acceleration = revenue_yoy - prior_revenue_yoy if revenue_yoy is not None and prior_revenue_yoy is not None else None
@@ -278,16 +305,6 @@ def main() -> int:
         current_eps_estimate = number(selected_estimate.get("eps_estimate_average"))
         prior_30d_eps_estimate = number(selected_estimate.get("eps_estimate_average_30_days_ago"))
         eps_revision_30d = current_eps_estimate / prior_30d_eps_estimate - 1 if current_eps_estimate is not None and prior_30d_eps_estimate not in (None, 0) else None
-        signal_inputs = [revenue_yoy, fcf_margin, surprise, momentum, ps]
-        signals = [
-            1 if revenue_yoy > 0 else -1,
-            1 if fcf_margin > 0 else -1,
-            1 if surprise > 0 else -1,
-            1 if momentum > 0 else -1,
-            1 if ps < 15 else 0,
-        ] if all(value is not None for value in signal_inputs) else []
-        score = sum(signals)
-        label = "Data incomplete" if not signals else "Constructive" if score >= 3 else "Watch" if score >= 1 else "Cautious"
         companies.append({
             "ticker": ticker,
             "name": item["company_name"],
@@ -301,8 +318,11 @@ def main() -> int:
             "lastDate": latest.get("trade_date"),
             "close": close,
             "momentum20d": momentum,
+            "momentum60d": momentum_60d,
             "benchmarkMomentum20d": qqq_momentum_20d,
+            "benchmarkMomentum60d": qqq_momentum_60d,
             "excess20d": momentum - qqq_momentum_20d if momentum is not None and qqq_momentum_20d is not None else None,
+            "excess60d": momentum_60d - qqq_momentum_60d if momentum_60d is not None and qqq_momentum_60d is not None else None,
             "volatility20d": number((latest_features.get((ticker, "realized_vol_20d")) or {}).get("feature_value")),
             "revenueYoY": revenue_yoy,
             "revenueAcceleration": revenue_acceleration,
@@ -324,9 +344,9 @@ def main() -> int:
             "earningsDate": event.get("reported_date"),
             "githubStars": number(dev.get("github_total_stars")),
             "hfDownloads": number(dev.get("hf_total_downloads_top50")),
-            "signalScore": score,
-            "signalLabel": label,
-            "signalCoverage": sum(value is not None for value in signal_inputs) / len(signal_inputs),
+            "signalScore": None,
+            "signalLabel": "Pending",
+            "signalCoverage": 0.0,
             "fundamentalPeriodEnd": fundamental.get("period_end"),
             "fundamentalAvailableDate": fundamental.get("available_date"),
         })
@@ -345,9 +365,13 @@ def main() -> int:
 
     metric_specs = {
         "revenuePercentile": ("revenueYoY", True),
+        "revenueAccelerationPercentile": ("revenueAcceleration", True),
         "fcfPercentile": ("fcfMargin", True),
+        "fcfDeltaPercentile": ("fcfMarginDelta", True),
+        "epsRevisionPercentile": ("epsRevision30d", True),
         "surprisePercentile": ("earningsSurprisePct", True),
         "marketPercentile": ("excess20d", True),
+        "market60Percentile": ("excess60d", True),
         "valuationPercentile": ("priceToSales", False),
     }
     for output_name, (input_name, higher_is_better) in metric_specs.items():
@@ -383,27 +407,39 @@ def main() -> int:
         )
 
     for company in companies:
-        company["fundamentalPercentile"] = average([company["revenuePercentile"], company["fcfPercentile"]])
+        fundamental_components = {
+            "growth": company["revenuePercentile"],
+            "acceleration": company["revenueAccelerationPercentile"],
+            "cash_quality": average([company["fcfPercentile"], company["fcfDeltaPercentile"]]),
+            "expectations": company["epsRevisionPercentile"],
+        }
+        fundamental_result = weighted_score(fundamental_components, FUNDAMENTAL_WEIGHTS)
+        market_components = {
+            "excess_20d": company["marketPercentile"],
+            "excess_60d": company["market60Percentile"],
+        }
+        market_result = weighted_score(market_components, MARKET_WEIGHTS)
+        company["fundamentalPercentile"] = fundamental_result["score"]
+        company["fundamentalScoreVersion"] = FUNDAMENTAL_SCORE_VERSION
+        company["fundamentalScoreCoverage"] = fundamental_result["coverage"]
+        company["fundamentalEffectiveWeights"] = fundamental_result["effective_weights"]
+        company["fundamentalComponents"] = {
+            name: round(value * 100) if value is not None else None
+            for name, value in fundamental_components.items()
+        }
+        company["marketCompositePercentile"] = market_result["score"]
+        company["marketScoreVersion"] = MARKET_SCORE_VERSION
+        company["marketScoreCoverage"] = market_result["coverage"]
+        company["marketComponents"] = {
+            name: round(value * 100) if value is not None else None
+            for name, value in market_components.items()
+        }
         fundamental = company["fundamentalPercentile"]
         valuation = company["valuationPercentile"]
-        market_signal = company["marketPercentile"]
+        market_signal = company["marketCompositePercentile"]
         excess = company["excess20d"]
-        coverage = company["signalCoverage"]
-        if coverage < 0.8 or fundamental is None or excess is None:
-            setup = "Data gap"
-            reason = "At least one core market, fundamental, earnings or valuation input is missing."
-        elif fundamental >= 0.55 and excess < 0:
-            setup = "Fundamental dislocation"
-            reason = "基本面得分高于样本中位数，但过去 20 个交易日跑输 QQQ。"
-        elif fundamental >= 0.55 and excess >= 0:
-            setup = "Momentum"
-            reason = "基本面得分高于样本中位数，同时过去 20 个交易日跑赢 QQQ。"
-        elif fundamental < 0.55 and excess >= 0:
-            setup = "Expectation risk"
-            reason = "股价跑赢 QQQ，但基本面得分仍低于强势阈值，存在预期领先风险。"
-        else:
-            setup = "Deteriorating"
-            reason = "基本面得分低于强势阈值，过去 20 个交易日同时跑输 QQQ。"
+        coverage = company["fundamentalScoreCoverage"]
+        setup, reason = classify_signal(fundamental, market_signal, coverage)
 
         risks = []
         if valuation is not None and valuation < 0.25:
@@ -419,6 +455,9 @@ def main() -> int:
         company["setupRisk"] = ", ".join(risks) if risks else "No single mechanical red flag; catalyst and source review still required."
         company["fundamentalScore"] = round(fundamental * 100) if fundamental is not None else None
         company["marketScore"] = round(market_signal * 100) if market_signal is not None else None
+        company["signalScore"] = company["fundamentalScore"]
+        company["signalCoverage"] = coverage
+        company["signalLabel"] = setup
         company["fundamentalPriceGap"] = (
             round((fundamental - market_signal) * 100)
             if fundamental is not None and market_signal is not None else None
@@ -615,6 +654,20 @@ def main() -> int:
         "fundamentalAsOfDate": max((row.get("available_date") or "" for row in latest_quarterly.values()), default=""),
         "briefGeneratedAt": daily_brief.get("generatedAt"),
         "platform": {"name": "AI Alpha Research", "version": "Framework v0.1", "benchmark": "QQQ"},
+        "universeScope": {
+            "dashboardCompanies": len(companies),
+            "backtestCompanies": len(hypotheses.get("universe") or []),
+            "policy": "核心公司用于页面监测；扩展公司仅用于横截面回测与稳健性检验。",
+        },
+        "signalMethod": {
+            "fundamentalVersion": FUNDAMENTAL_SCORE_VERSION,
+            "fundamentalWeights": FUNDAMENTAL_WEIGHTS,
+            "marketVersion": MARKET_SCORE_VERSION,
+            "marketWeights": MARKET_WEIGHTS,
+            "minimumCoverage": MIN_SCORE_COVERAGE,
+            "strongFundamentalThreshold": STRONG_FUNDAMENTAL_THRESHOLD,
+            "strongMarketThreshold": STRONG_MARKET_THRESHOLD,
+        },
         "companies": companies,
         "priceSeries": price_series,
         "hypotheses": hypotheses,

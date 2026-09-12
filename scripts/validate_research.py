@@ -36,7 +36,17 @@ def main() -> int:
         dates[row["ticker"]].add(row["trade_date"])
     qqq_dates = dates["QQQ"]
     failures = []
-    company_date_mismatches = {ticker: len(dates[ticker] ^ qqq_dates) for ticker in companies}
+    company_date_mismatches = {}
+    for ticker in companies:
+        ticker_dates = dates[ticker]
+        if not ticker_dates:
+            company_date_mismatches[ticker] = len(qqq_dates)
+            continue
+        # Do not require pre-listing history for IPOs or spin-offs. Within each
+        # security's observed lifetime, the trading calendar must match QQQ.
+        first_date, last_date = min(ticker_dates), max(ticker_dates)
+        eligible_qqq_dates = {day for day in qqq_dates if first_date <= day <= last_date}
+        company_date_mismatches[ticker] = len(ticker_dates ^ eligible_qqq_dates)
     if any(company_date_mismatches.values()):
         failures.append("company_benchmark_date_mismatch")
     duplicate_checks = {

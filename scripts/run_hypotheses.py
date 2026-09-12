@@ -88,41 +88,96 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
     """Test raw, within-stage and controlled versions of the Signal Monitor gap."""
     histories = defaultdict(list)
     momentum_by_date = defaultdict(dict)
+    momentum_60d_by_date = defaultdict(dict)
     for row in features:
         value = parse_float(row["feature_value"])
         if value is None:
             continue
         if row["feature_name"] in {"revenue_yoy", "fcf_margin", "price_to_sales_filing_basis", "realized_vol_20d"}:
-            histories[(row["ticker"], row["feature_name"])].append((row["feature_date"], value))
+            histories[(row["ticker"], row["feature_name"])].append(
+                (row["feature_date"], row.get("source_period_end"), value)
+            )
         elif row["feature_name"] == "momentum_20d":
             momentum_by_date[row["feature_date"]][row["ticker"]] = value
+        elif row["feature_name"] == "momentum_60d":
+            momentum_60d_by_date[row["feature_date"]][row["ticker"]] = value
     for rows in histories.values():
         rows.sort()
     target_map = {(row["ticker"], row["target_date"]): row for row in targets}
-    eligible_dates = sorted(day for day, values in momentum_by_date.items() if len(values) >= 15)
+    minimum_cross_section = max(15, math.ceil(len(stages) * 0.60))
+    eligible_dates = sorted(
+        day for day, values in momentum_by_date.items()
+        if len(values) >= minimum_cross_section
+        and len(momentum_60d_by_date.get(day, {})) >= minimum_cross_section
+    )
     rebalance_dates = eligible_dates[::20]
     samples = []
 
     def latest(ticker: str, name: str, day: str):
-        matches = [value for observed, value in histories.get((ticker, name), []) if observed <= day]
-        return matches[-1] if matches else None
+        matches = [item for item in histories.get((ticker, name), []) if item[0] <= day]
+        return matches[-1][2] if matches else None
+
+    def latest_change(ticker: str, name: str, day: str):
+        matches = [item for item in histories.get((ticker, name), []) if item[0] <= day]
+        return matches[-1][2] - matches[-2][2] if len(matches) >= 2 else None
+
+    def latest_yoy_change(ticker: str, name: str, day: str):
+        matches = [item for item in histories.get((ticker, name), []) if item[0] <= day and item[1]]
+        if not matches:
+            return None
+        current = matches[-1]
+        current_end = date.fromisoformat(current[1])
+        candidates = [item for item in matches[:-1]
+            if 330 <= (current_end - date.fromisoformat(item[1])).days <= 400]
+        prior = min(candidates,
+            key=lambda item: abs((current_end - date.fromisoformat(item[1])).days - 365),
+            default=None)
+        return current[2] - prior[2] if prior else None
 
     for day in rebalance_dates:
         momentum = momentum_by_date[day]
+        momentum_60d = momentum_60d_by_date[day]
         revenue = {ticker: latest(ticker, "revenue_yoy", day) for ticker in momentum}
+        revenue_acceleration = {ticker: latest_change(ticker, "revenue_yoy", day) for ticker in momentum}
         fcf = {ticker: latest(ticker, "fcf_margin", day) for ticker in momentum}
-        complete = [ticker for ticker in momentum if revenue[ticker] is not None and fcf[ticker] is not None and (ticker, day) in target_map]
-        if len(complete) < 10:
+        fcf_delta = {ticker: latest_yoy_change(ticker, "fcf_margin", day) for ticker in momentum}
+        complete = [
+            ticker for ticker in momentum
+            if ticker in momentum_60d and revenue[ticker] is not None
+            and revenue_acceleration[ticker] is not None and fcf[ticker] is not None
+            and fcf_delta[ticker] is not None and (ticker, day) in target_map
+        ]
+        if len(complete) < minimum_cross_section:
             continue
         complete_values = {ticker: revenue[ticker] for ticker in complete}
         revenue_rank = percentile_map(complete_values)
+        acceleration_rank = percentile_map({ticker: revenue_acceleration[ticker] for ticker in complete})
         fcf_rank = percentile_map({ticker: fcf[ticker] for ticker in complete})
-        market_rank = percentile_map({ticker: momentum[ticker] for ticker in complete})
+        fcf_delta_rank = percentile_map({ticker: fcf_delta[ticker] for ticker in complete})
+        market_20_rank = percentile_map({ticker: momentum[ticker] for ticker in complete})
+        market_60_rank = percentile_map({ticker: momentum_60d[ticker] for ticker in complete})
         stage_revenue_rank = grouped_percentile_map(complete_values, stages)
+        stage_acceleration_rank = grouped_percentile_map({ticker: revenue_acceleration[ticker] for ticker in complete}, stages)
         stage_fcf_rank = grouped_percentile_map({ticker: fcf[ticker] for ticker in complete}, stages)
-        stage_market_rank = grouped_percentile_map({ticker: momentum[ticker] for ticker in complete}, stages)
-        raw_gap = {ticker: (revenue_rank[ticker] + fcf_rank[ticker]) / 2 - market_rank[ticker] for ticker in complete}
-        stage_gap = {ticker: (stage_revenue_rank[ticker] + stage_fcf_rank[ticker]) / 2 - stage_market_rank[ticker] for ticker in complete}
+        stage_fcf_delta_rank = grouped_percentile_map({ticker: fcf_delta[ticker] for ticker in complete}, stages)
+        stage_market_20_rank = grouped_percentile_map({ticker: momentum[ticker] for ticker in complete}, stages)
+        stage_market_60_rank = grouped_percentile_map({ticker: momentum_60d[ticker] for ticker in complete}, stages)
+        raw_gap = {
+            ticker: (
+                0.375 * revenue_rank[ticker]
+                + 0.3125 * acceleration_rank[ticker]
+                + 0.3125 * (fcf_rank[ticker] + fcf_delta_rank[ticker]) / 2
+                - (0.60 * market_20_rank[ticker] + 0.40 * market_60_rank[ticker])
+            ) for ticker in complete
+        }
+        stage_gap = {
+            ticker: (
+                0.375 * stage_revenue_rank[ticker]
+                + 0.3125 * stage_acceleration_rank[ticker]
+                + 0.3125 * (stage_fcf_rank[ticker] + stage_fcf_delta_rank[ticker]) / 2
+                - (0.60 * stage_market_20_rank[ticker] + 0.40 * stage_market_60_rank[ticker])
+            ) for ticker in complete
+        }
         valuation = {ticker: latest(ticker, "price_to_sales_filing_basis", day) for ticker in complete}
         volatility = {ticker: latest(ticker, "realized_vol_20d", day) for ticker in complete}
         controlled_tickers = [ticker for ticker in complete if valuation[ticker] is not None and volatility[ticker] is not None]
@@ -174,8 +229,9 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
                 for index, row in enumerate(ordered):
                     quintile = min(5, math.floor(index * 5 / size) + 1)
                     value = row[return_key]
-                    group_values[horizon][quintile].append(value)
                     dated_groups[quintile].append(value)
+                for quintile, values in dated_groups.items():
+                    group_values[horizon][quintile].append(mean(values))
                 q1, q5 = mean(dated_groups[1]), mean(dated_groups[5])
                 if q1 is not None and q5 is not None:
                     date_spreads[horizon].append({"date": day, "spread": q5 - q1})
@@ -185,18 +241,29 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             mature = [row for row in samples if row.get(score_key) is not None and row.get(return_key) is not None]
             ics = [value for _, value in date_ics[horizon] if value is not None]
             groups = [mean(group_values[horizon].get(group, [])) for group in range(1, 6)]
-            top_bottom = groups[4] - groups[0] if groups[4] is not None and groups[0] is not None else None
+            spreads = [item["spread"] for item in date_spreads[horizon]]
+            # Equal-weight rebalance dates. This makes the headline spread,
+            # its t-stat and the Q1/Q5 chart use the same aggregation rule.
+            top_bottom = mean(spreads)
+            spread_std = statistics.stdev(spreads) if len(spreads) >= 2 else None
+            spread_t_stat = (
+                statistics.fmean(spreads) / (spread_std / math.sqrt(len(spreads)))
+                if spread_std not in (None, 0) else None
+            )
             monotonic_steps = sum(
                 groups[index] is not None and groups[index - 1] is not None and groups[index] >= groups[index - 1]
                 for index in range(1, 5)
             )
             horizon_results[str(horizon)] = {
                 "sample_size": len(mature), "rank_ic": mean(ics),
+                "company_count": len({row["ticker"] for row in mature}),
                 "ic_stability": sum(value > 0 for value in ics) / len(ics) if ics else None,
                 "hit_rate": mean(1.0 if row[score_key] * row[return_key] > 0 else 0.0 for row in mature if row[score_key] != 0),
                 "top_bottom_spread": top_bottom, "group_returns": groups,
                 "bottom_quintile_return": groups[0], "top_quintile_return": groups[4],
                 "monotonic_steps": monotonic_steps, "rebalance_periods": len(ics),
+                "spread_t_stat": spread_t_stat,
+                "spread_positive_rate": sum(value > 0 for value in spreads) / len(spreads) if spreads else None,
             }
         cumulative = 1.0
         cumulative_series = []
@@ -234,8 +301,8 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
     primary = horizon_results["60"]
     rank_ic = primary["rank_ic"]
     stability = primary["ic_stability"]
-    n = primary["sample_size"]
-    if n < 100 or rank_ic is None:
+    effective_periods = primary["rebalance_periods"]
+    if effective_periods < 24 or rank_ic is None:
         verdict = "Needs Data"
     elif rank_ic >= 0.08 and stability is not None and stability >= 0.60:
         verdict = "Validated"
@@ -267,7 +334,8 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             {"id": "controlled", "name": "估值与波动率控制", "description": "同层Gap剔除P/S和20日波动率暴露，未来收益再做同层中性", "horizons": variants["controlled"]["horizons"]},
         ],
         "factor_definition": {
-            "formula": "Gap = 0.5 × Revenue YoY分位 + 0.5 × FCF Margin分位 − 20D价格动量分位",
+            "formula": "Live Fundamental = 30%增长 + 25%增长加速 + 25%现金流质量 + 20% EPS预期修正；Market = 60% 20D + 40% 60D同层价格分位；Gap = Fundamental − Market",
+            "backtest_formula": "历史PIT回测尚无EPS Revision序列，因此将其余三维重新归一为：37.5%增长 + 31.25%增长加速 + 31.25%现金流质量；FCF Margin变化按去年同财季计算。",
             "question": "基本面仍强、但近期相对价格表现弱的公司，是否会在信息扩散后获得未来超额收益？",
             "mechanisms": ["财报信息扩散慢于短期资金流", "指数、仓位或风险冲击造成非基本面抛售", "基本面持续兑现后触发估值修复"],
             "failure_modes": ["滞后财务数据尚未反映订单或指引恶化", "高质量公司仍可能处于估值压缩周期", "所谓错位可能是市场提前识别了基本面拐点"],
@@ -276,10 +344,11 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             "start_date": min((row["date"] for row in samples), default=None),
             "end_date": max((row["date"] for row in samples), default=None),
             "rebalance_rule": "每20个交易日", "entry_rule": "信号日后的下一交易日收盘", "benchmark": "QQQ超额收益",
+            "company_count": primary.get("company_count"), "cross_section_count": primary.get("rebalance_periods"),
         },
         "conclusion": conclusion,
         "next_action": "继续扩展历史区间与公司数，加入交易成本、规模和更细行业控制；当前结果只能用于证伪或生成研究问题。",
-        "method": "每20个交易日重建横截面；主结果使用同层Gap，次日收盘入场并观察20D/60D/120D相对QQQ收益。控制版本进一步剔除P/S、20日波动率及同层共同收益。",
+        "method": "每20个交易日重建横截面；历史核心分数使用Revenue YoY、Revenue增长加速度、FCF Margin及其同财季同比变化，市场分数合并20D/60D动量；主结果使用同层Gap，次日收盘入场并观察20D/60D/120D相对QQQ收益。控制版本进一步剔除P/S、20日波动率及同层共同收益。",
     }
 
 

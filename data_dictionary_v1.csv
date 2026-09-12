@@ -132,3 +132,8 @@ fcf_margin,fundamental_quarterly,单季度自由现金流率,DOUBLE,quarterly,de
 revenue_growth_acceleration,fundamental_quarterly,收入同比增速较上一财季变化,DOUBLE,quarterly,derived_sec,partial,period_end,available_date,current revenue_yoy minus prior-quarter revenue_yoy,Signal Monitor change metric,P0
 metric_derivations,fundamental_quarterly,各指标直接披露或累计差额还原方式,TEXT,quarterly,internal_lineage,from_2019,period_end,available_date,preserve per-metric derivation labels,Audit and quality control,P0
 source_accessions,fundamental_quarterly,构成季度记录的SEC申报编号,TEXT,quarterly,sec_edgar,from_2019,period_end,available_date,preserve all contributing accessions,Row-level filing lineage,P0
+fundamental_score_v2,public_dashboard_company,同产业链层内的多维基本面综合分位；增长30%+增长加速度25%+现金流质量25%+EPS预期修正20%；现金流变化按同财季同比,DOUBLE,daily,derived_research,from_source_history,n/a,as_of_date,reweight observed components and require at least 70% intended coverage,Signal Monitor classification,P0
+fundamental_score_coverage,public_dashboard_company,基本面评分已观察权重占完整模型权重的比例,DOUBLE,daily,derived_research,from_source_history,n/a,as_of_date,block signal classification below 70% coverage,Missing-data control,P0
+market_score_v2,public_dashboard_company,同产业链层内价格表现综合分位；20D相对QQQ占60%+60D相对QQQ占40%,DOUBLE,daily,derived_market,from_2020,n/a,as_of_date,recompute after market close,Signal Monitor classification,P0
+fundamental_price_gap_v2,public_dashboard_company,基本面综合分位减市场综合分位；正值表示基本面相对价格更强但不等于低估,DOUBLE,daily,derived_research,from_2020,n/a,as_of_date,recompute after quality checks,Fundamental Dislocation Factor,P0
+universe_tier,company_master,core用于公开页面监测；extended仅用于扩大回测横截面,TEXT,static,internal_master,full,n/a,updated_at,analyst-reviewed universe governance,Universe and survivorship controls,P0

@@ -32,6 +32,14 @@ class FactorLabControlTests(unittest.TestCase):
         self.assertTrue(card["factor_definition"]["mechanisms"])
         self.assertTrue(card["factor_definition"]["failure_modes"])
         self.assertTrue(card["cumulative_20d"])
+        self.assertGreater(card["backtest_scope"]["company_count"], 0)
+        self.assertGreater(card["backtest_scope"]["cross_section_count"], 0)
+        for horizon in ("20", "60", "120"):
+            metrics = card["horizons"][horizon]
+            self.assertIn("company_count", metrics)
+            self.assertIn("rebalance_periods", metrics)
+            self.assertIn("spread_t_stat", metrics)
+            self.assertIn("spread_positive_rate", metrics)
 
 
 if __name__ == "__main__":

@@ -55,44 +55,58 @@ def earnings_available_at(reported_date: date, report_time: str) -> str:
 
 
 def normalize_market(tickers: list[str]) -> list[dict]:
-    rows = []
+    rows_by_key = {}
     for ticker in tickers:
-        envelope = load_envelope(latest_raw(PROJECT_ROOT, "massive", ticker))
-        for item in envelope["payload"].get("results") or []:
-            trade_date = datetime.fromtimestamp(item["t"] / 1000, tz=timezone.utc).date()
-            rows.append({
-                "ticker": ticker,
-                "trade_date": trade_date.isoformat(),
-                "open": item.get("o"),
-                "high": item.get("h"),
-                "low": item.get("l"),
-                "close": item.get("c"),
-                "volume": item.get("v"),
-                "vwap": item.get("vw"),
-                "transactions": item.get("n"),
-                "adjusted": envelope["payload"].get("adjusted"),
-                "available_at": market_available_at(trade_date),
-                "source_retrieved_at": envelope["retrieved_at"],
-                "source": "massive",
-            })
+        paths = sorted((PROJECT_ROOT / "data" / "raw" / "massive").glob(f"*/{ticker}_*.json"))
+        if not paths:
+            raise FileNotFoundError(f"No raw file for massive/{ticker}")
+        # Merge append-only snapshots so a short daily refresh cannot truncate
+        # the longer historical backfill. Later snapshots win on overlap.
+        for path in paths:
+            envelope = load_envelope(path)
+            for item in envelope["payload"].get("results") or []:
+                trade_date = datetime.fromtimestamp(item["t"] / 1000, tz=timezone.utc).date()
+                key = (ticker, trade_date.isoformat())
+                rows_by_key[key] = {
+                    "ticker": ticker,
+                    "trade_date": trade_date.isoformat(),
+                    "open": item.get("o"),
+                    "high": item.get("h"),
+                    "low": item.get("l"),
+                    "close": item.get("c"),
+                    "volume": item.get("v"),
+                    "vwap": item.get("vw"),
+                    "transactions": item.get("n"),
+                    "adjusted": envelope["payload"].get("adjusted"),
+                    "available_at": market_available_at(trade_date),
+                    "source_retrieved_at": envelope["retrieved_at"],
+                    "source": "massive",
+                }
+    rows = list(rows_by_key.values())
     rows.sort(key=lambda row: (row["ticker"], row["trade_date"]))
     return rows
 
 
 def normalize_unadjusted_market(tickers: list[str]) -> list[dict]:
-    rows = []
+    rows_by_key = {}
     for ticker in tickers:
-        envelope = load_envelope(latest_raw(PROJECT_ROOT, "massive_unadjusted", ticker))
-        for item in envelope["payload"].get("results") or []:
-            trade_date = datetime.fromtimestamp(item["t"] / 1000, tz=timezone.utc).date()
-            rows.append({
-                "ticker": ticker,
-                "trade_date": trade_date.isoformat(),
-                "close_unadjusted": item.get("c"),
-                "available_at": market_available_at(trade_date),
-                "source_retrieved_at": envelope["retrieved_at"],
-                "source": "massive_unadjusted",
-            })
+        paths = sorted((PROJECT_ROOT / "data" / "raw" / "massive_unadjusted").glob(f"*/{ticker}_*.json"))
+        if not paths:
+            raise FileNotFoundError(f"No raw file for massive_unadjusted/{ticker}")
+        for path in paths:
+            envelope = load_envelope(path)
+            for item in envelope["payload"].get("results") or []:
+                trade_date = datetime.fromtimestamp(item["t"] / 1000, tz=timezone.utc).date()
+                key = (ticker, trade_date.isoformat())
+                rows_by_key[key] = {
+                    "ticker": ticker,
+                    "trade_date": trade_date.isoformat(),
+                    "close_unadjusted": item.get("c"),
+                    "available_at": market_available_at(trade_date),
+                    "source_retrieved_at": envelope["retrieved_at"],
+                    "source": "massive_unadjusted",
+                }
+    rows = list(rows_by_key.values())
     rows.sort(key=lambda row: (row["ticker"], row["trade_date"]))
     return rows
 
