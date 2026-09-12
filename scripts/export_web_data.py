@@ -197,6 +197,13 @@ def main() -> int:
     developer = read_csv(PROJECT_ROOT / "data" / "standardized" / "developer_snapshot.csv")
     features = read_csv(PROJECT_ROOT / "data" / "research" / "feature_store.csv")
     hypotheses = json.loads((PROJECT_ROOT / "research" / "results" / "hypothesis_results.json").read_text(encoding="utf-8"))
+    # Public pages need the robustness conclusion, not every internal
+    # leave-one-out run. Full diagnostics remain in research/results only.
+    for card in hypotheses.get("factor_lab", {}).get("return_prediction", []):
+        robustness = card.get("robustness") or {}
+        for key in ("leave_one_company_out", "leave_one_industry_out"):
+            if isinstance(robustness.get(key), dict):
+                robustness[key].pop("results", None)
     quality = json.loads((PROJECT_ROOT / "data" / "research" / "research_quality_report.json").read_text(encoding="utf-8"))
     alternative_path = PROJECT_ROOT / "data" / "standardized" / "manual_alternative_observations.csv"
     alternative = read_csv(alternative_path) if alternative_path.exists() else []

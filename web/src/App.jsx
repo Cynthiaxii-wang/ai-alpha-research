@@ -266,6 +266,23 @@ function HorizonSpreadChart({ horizons }) {
   </div>
 }
 
+function R1ComparisonTable({ title, subtitle, rows }) {
+  if (!rows?.length) return null
+  return <div className="factor-chart r1-comparison"><div className="factor-subhead"><b>{title}</b><span>{subtitle}</span></div>
+    <div className="r1-table"><div className="r1-table-head"><span>信号</span>{['20','60','120'].map(h => <span key={h}>{h}D IC / Q5−Q1</span>)}</div>
+      {rows.map(row => <div key={row.id}><span><b>{row.name}</b></span>{['20','60','120'].map(h => <span key={h}><b className={tone(row.horizons?.[h]?.top_bottom_spread)}>{num(row.horizons?.[h]?.rank_ic,3)} / {pct(row.horizons?.[h]?.top_bottom_spread)}</b></span>)}</div>)}
+    </div>
+  </div>
+}
+
+function R1Robustness({ robustness }) {
+  if (!robustness) return null
+  const items = [['Leave-One-Company-Out', robustness.leave_one_company_out], ['Leave-One-Industry-Out', robustness.leave_one_industry_out]]
+  return <div className="factor-chart r1-robustness"><div className="factor-subhead"><b>120D 稳健性检查</b><span>逐一剔除，不重选样本参数</span></div><div className="robustness-grid">
+    {items.map(([label,item]) => { const h=item?.horizon_summary?.['120']; return <div key={label}><span>{label} · {item?.count ?? '—'}次</span><b>IC {num(h?.rank_ic_min,3)} → {num(h?.rank_ic_max,3)}</b><b>Q5−Q1 {pct(h?.spread_min)} → {pct(h?.spread_max)}</b><small>影响最大：{SEGMENT_NAMES[h?.most_influential_exclusion] || h?.most_influential_exclusion || '—'}；剔除后 {pct(h?.most_influential_spread)}</small></div> })}
+  </div><p>{robustness.method}</p></div>
+}
+
 function FactorLab({ hypotheses }) {
   const [tab, setTab] = useState('return_prediction')
   const lab = hypotheses.factor_lab || {fundamental_prediction:[], return_prediction:[]}
@@ -289,7 +306,10 @@ function FactorLab({ hypotheses }) {
         </div>}
         {card.backtest_scope && <div className="backtest-scope"><span><small>样本区间</small><b>{card.backtest_scope.start_date} → {card.backtest_scope.end_date}</b></span><span><small>有效规模</small><b>{card.backtest_scope.company_count}家公司 · {card.backtest_scope.cross_section_count}个截面</b></span><span><small>再平衡</small><b>{card.backtest_scope.rebalance_rule}</b></span><span><small>入场规则</small><b>{card.backtest_scope.entry_rule}</b></span><span><small>基准</small><b>{card.backtest_scope.benchmark}</b></span></div>}
         <div className="factor-stat-grid">{Object.entries(metricNames).map(([key,label]) => <div key={key}><span>{label}</span><b className={key !== 'sample_size' ? tone(primary[key]) : ''}>{metricText(key, primary[key], primary)}</b></div>)}</div>
-        {card.horizons && <div className="horizon-strip">{['20','60','120'].map(horizon => { const item=card.horizons[horizon]; return <div key={horizon} className={card.primary_horizon === horizon ? 'primary' : ''}><span>{horizon}D FORWARD {card.primary_horizon === horizon ? '· 主窗口' : ''}</span><b className={tone(item?.top_bottom_spread)}>Q5−Q1 {pct(item?.top_bottom_spread)}</b><small>Q5 {pct(item?.top_quintile_return)} · Q1 {pct(item?.bottom_quintile_return)} · IC {num(item?.rank_ic,3)}</small><small>t-stat {num(item?.spread_t_stat,2)} · 正Spread期 {pct(item?.spread_positive_rate,0)}</small></div>})}</div>}
+        {card.horizons && <div className="horizon-strip">{['20','60','120'].map(horizon => { const item=card.horizons[horizon]; return <div key={horizon} className={card.primary_horizon === horizon ? 'primary' : ''}><span>{horizon}D FORWARD {card.primary_horizon === horizon ? '· 主窗口' : ''}</span><b className={tone(item?.top_bottom_spread)}>Q5−Q1 {pct(item?.top_bottom_spread)}</b><small>Q5 {pct(item?.top_quintile_return)} · Q1 {pct(item?.bottom_quintile_return)} · IC {num(item?.rank_ic,3)}</small><small>HAC t {num(item?.spread_t_stat_hac ?? item?.spread_t_stat,2)} · 普通 t {num(item?.spread_t_stat_naive,2)} · lag {item?.hac_lag ?? '—'}</small></div>})}</div>}
+        {card.experiment_id === 'R1' && <R1ComparisonTable title="Component Ablation" subtitle="完全相同样本 · 历史回测不含 EPS Revision" rows={card.component_ablation}/>}
+        {card.experiment_id === 'R1' && <R1ComparisonTable title="信号来源拆分" subtitle="Fundamental / Market / Gap 同样本对照" rows={card.signal_sources}/>}
+        {card.experiment_id === 'R1' && <R1Robustness robustness={card.robustness}/>}
         {groups.length > 0 && <div className="factor-chart"><div className="factor-subhead"><b>{card.primary_horizon}D Factor Score 分组收益</b><span>单调性 {primary.monotonic_steps ?? '—'} / 4 · Q5 − Q1 {pct(primary.top_bottom_spread)}</span></div><div className="quintile-chart">{groups.map((value,index) => <div key={index}><span className="bar-space"><i className={tone(value)} style={{height:`${Math.max(5, Math.abs(value || 0)/maxGroup*64)}px`}}/></span><b>Q{index+1}</b><small className={tone(value)}>{pct(value)}</small></div>)}</div></div>}
         {card.horizons && <HorizonSpreadChart horizons={card.horizons}/>}
         {card.cumulative_20d?.length > 0 && <BacktestLineChart rows={card.cumulative_20d} maxDrawdown={card.max_drawdown_20d}/>}

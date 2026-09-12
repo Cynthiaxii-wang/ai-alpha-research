@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-09-12T02:15:41.743163+00:00",
+    "cutoff": "2026-09-12T11:02:08.767091+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,7 +1186,7 @@
       }
     ]
   },
-  "generatedAt": "2026-09-12T02:15:41.812355+00:00",
+  "generatedAt": "2026-09-12T11:02:08.839563+00:00",
   "asOfDate": "2026-09-10",
   "marketAsOfDate": "2026-09-10",
   "fundamentalAsOfDate": "2026-09-10",
@@ -15183,7 +15183,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-09-12T02:13:40.495082+00:00",
+    "generated_at": "2026-09-12T10:57:08.476682+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -17187,7 +17187,10 @@
               "top_quintile_return": 0.030830184879292573,
               "monotonic_steps": 1,
               "rebalance_periods": 18,
-              "spread_t_stat": -0.008069795855537276,
+              "spread_t_stat": -0.008303751429681148,
+              "spread_t_stat_hac": -0.008303751429681148,
+              "spread_t_stat_naive": -0.008069795855537276,
+              "hac_lag": 0,
               "spread_positive_rate": 0.6111111111111112
             },
             "60": {
@@ -17208,7 +17211,10 @@
               "top_quintile_return": 0.0982427579296571,
               "monotonic_steps": 3,
               "rebalance_periods": 16,
-              "spread_t_stat": 0.08946613015541365,
+              "spread_t_stat": 0.07781080191550056,
+              "spread_t_stat_hac": 0.07781080191550056,
+              "spread_t_stat_naive": 0.08946613015541365,
+              "hac_lag": 2,
               "spread_positive_rate": 0.5625
             },
             "120": {
@@ -17229,7 +17235,10 @@
               "top_quintile_return": 0.20659490710344594,
               "monotonic_steps": 3,
               "rebalance_periods": 13,
-              "spread_t_stat": 0.9393687087844974,
+              "spread_t_stat": 0.7103328490103277,
+              "spread_t_stat_hac": 0.7103328490103277,
+              "spread_t_stat_naive": 0.9393687087844974,
+              "hac_lag": 5,
               "spread_positive_rate": 0.6923076923076923
             }
           },
@@ -17380,7 +17389,10 @@
                   "top_quintile_return": 0.012655487972451742,
                   "monotonic_steps": 2,
                   "rebalance_periods": 18,
-                  "spread_t_stat": -0.9377512017334227,
+                  "spread_t_stat": -0.9649380258778163,
+                  "spread_t_stat_hac": -0.9649380258778163,
+                  "spread_t_stat_naive": -0.9377512017334227,
+                  "hac_lag": 0,
                   "spread_positive_rate": 0.3888888888888889
                 },
                 "60": {
@@ -17401,7 +17413,10 @@
                   "top_quintile_return": 0.0438110652187853,
                   "monotonic_steps": 0,
                   "rebalance_periods": 16,
-                  "spread_t_stat": -0.9351457978977535,
+                  "spread_t_stat": -0.7787772170802173,
+                  "spread_t_stat_hac": -0.7787772170802173,
+                  "spread_t_stat_naive": -0.9351457978977535,
+                  "hac_lag": 2,
                   "spread_positive_rate": 0.375
                 },
                 "120": {
@@ -17422,7 +17437,10 @@
                   "top_quintile_return": 0.09464848604734913,
                   "monotonic_steps": 2,
                   "rebalance_periods": 13,
-                  "spread_t_stat": -0.2651553084892048,
+                  "spread_t_stat": -0.18778589169450638,
+                  "spread_t_stat_hac": -0.18778589169450638,
+                  "spread_t_stat_naive": -0.2651553084892048,
+                  "hac_lag": 5,
                   "spread_positive_rate": 0.38461538461538464
                 }
               }
@@ -17450,7 +17468,10 @@
                   "top_quintile_return": 0.030830184879292573,
                   "monotonic_steps": 1,
                   "rebalance_periods": 18,
-                  "spread_t_stat": -0.008069795855537276,
+                  "spread_t_stat": -0.008303751429681148,
+                  "spread_t_stat_hac": -0.008303751429681148,
+                  "spread_t_stat_naive": -0.008069795855537276,
+                  "hac_lag": 0,
                   "spread_positive_rate": 0.6111111111111112
                 },
                 "60": {
@@ -17471,7 +17492,10 @@
                   "top_quintile_return": 0.0982427579296571,
                   "monotonic_steps": 3,
                   "rebalance_periods": 16,
-                  "spread_t_stat": 0.08946613015541365,
+                  "spread_t_stat": 0.07781080191550056,
+                  "spread_t_stat_hac": 0.07781080191550056,
+                  "spread_t_stat_naive": 0.08946613015541365,
+                  "hac_lag": 2,
                   "spread_positive_rate": 0.5625
                 },
                 "120": {
@@ -17492,7 +17516,10 @@
                   "top_quintile_return": 0.20659490710344594,
                   "monotonic_steps": 3,
                   "rebalance_periods": 13,
-                  "spread_t_stat": 0.9393687087844974,
+                  "spread_t_stat": 0.7103328490103277,
+                  "spread_t_stat_hac": 0.7103328490103277,
+                  "spread_t_stat_naive": 0.9393687087844974,
+                  "hac_lag": 5,
                   "spread_positive_rate": 0.6923076923076923
                 }
               }
@@ -17520,7 +17547,10 @@
                   "top_quintile_return": 0.006496429366232173,
                   "monotonic_steps": 2,
                   "rebalance_periods": 18,
-                  "spread_t_stat": -0.9130691492696331,
+                  "spread_t_stat": -0.9395404034220978,
+                  "spread_t_stat_hac": -0.9395404034220978,
+                  "spread_t_stat_naive": -0.9130691492696331,
+                  "hac_lag": 0,
                   "spread_positive_rate": 0.3888888888888889
                 },
                 "60": {
@@ -17541,7 +17571,10 @@
                   "top_quintile_return": 0.019689086875316047,
                   "monotonic_steps": 2,
                   "rebalance_periods": 16,
-                  "spread_t_stat": -0.43470559182801505,
+                  "spread_t_stat": -0.41233583591364803,
+                  "spread_t_stat_hac": -0.41233583591364803,
+                  "spread_t_stat_naive": -0.43470559182801505,
+                  "hac_lag": 2,
                   "spread_positive_rate": 0.625
                 },
                 "120": {
@@ -17562,12 +17595,630 @@
                   "top_quintile_return": 0.07809879309436532,
                   "monotonic_steps": 2,
                   "rebalance_periods": 13,
-                  "spread_t_stat": 0.4224046938609771,
+                  "spread_t_stat": 0.38364132153882846,
+                  "spread_t_stat_hac": 0.38364132153882846,
+                  "spread_t_stat_naive": 0.4224046938609771,
+                  "hac_lag": 5,
                   "spread_positive_rate": 0.6923076923076923
                 }
               }
             }
           ],
+          "component_ablation": [
+            {
+              "id": "fundamental_growth",
+              "name": "Revenue Growth",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.10817958322035848,
+                  "company_count": 38,
+                  "ic_stability": 0.6666666666666666,
+                  "hit_rate": 0.5262267343485617,
+                  "top_bottom_spread": 0.03895908579657781,
+                  "group_returns": [
+                    0.013494920195245893,
+                    0.011360273895800722,
+                    0.008166193852262492,
+                    0.039302853208700396,
+                    0.0524540059918237
+                  ],
+                  "bottom_quintile_return": 0.013494920195245893,
+                  "top_quintile_return": 0.0524540059918237,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 2.167187808163729,
+                  "spread_t_stat_hac": 2.167187808163729,
+                  "spread_t_stat_naive": 2.106127976082988,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.5555555555555556
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.187671687743544,
+                  "company_count": 38,
+                  "ic_stability": 0.875,
+                  "hit_rate": 0.525911708253359,
+                  "top_bottom_spread": 0.10526735886873091,
+                  "group_returns": [
+                    0.05061623486491105,
+                    0.0291829751663367,
+                    0.031574707100975236,
+                    0.12607676792487774,
+                    0.15588359373364197
+                  ],
+                  "bottom_quintile_return": 0.05061623486491105,
+                  "top_quintile_return": 0.15588359373364197,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 1.8835157399977112,
+                  "spread_t_stat_hac": 1.8835157399977112,
+                  "spread_t_stat_naive": 2.46614466421977,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.6875
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.18198466259478502,
+                  "company_count": 38,
+                  "ic_stability": 0.9230769230769231,
+                  "hit_rate": 0.5384615384615384,
+                  "top_bottom_spread": 0.10768383669067035,
+                  "group_returns": [
+                    0.15091323090533412,
+                    0.015315178327761829,
+                    0.1284769310811727,
+                    0.1960783980017105,
+                    0.2585970675960044
+                  ],
+                  "bottom_quintile_return": 0.15091323090533412,
+                  "top_quintile_return": 0.2585970675960044,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 1.2940473600171727,
+                  "spread_t_stat_hac": 1.2940473600171727,
+                  "spread_t_stat_naive": 1.8371060486460256,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.7692307692307693
+                }
+              }
+            },
+            {
+              "id": "growth_acceleration",
+              "name": "Growth Acceleration",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.035058338671194025,
+                  "company_count": 38,
+                  "ic_stability": 0.5555555555555556,
+                  "hit_rate": 0.5194585448392555,
+                  "top_bottom_spread": 0.02702006453383527,
+                  "group_returns": [
+                    0.01971845212633294,
+                    0.026129409718275723,
+                    0.017542203248019125,
+                    0.015427127577383262,
+                    0.04673851666016821
+                  ],
+                  "bottom_quintile_return": 0.01971845212633294,
+                  "top_quintile_return": 0.04673851666016821,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 1.3031375408954844,
+                  "spread_t_stat_hac": 1.3031375408954844,
+                  "spread_t_stat_naive": 1.2664220522214282,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6111111111111112
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.07859324357392639,
+                  "company_count": 38,
+                  "ic_stability": 0.6875,
+                  "hit_rate": 0.5067178502879078,
+                  "top_bottom_spread": 0.11329278091271915,
+                  "group_returns": [
+                    0.05151470686950487,
+                    0.07533325895037445,
+                    0.04233791751015232,
+                    0.058788255359618465,
+                    0.164807487782224
+                  ],
+                  "bottom_quintile_return": 0.05151470686950487,
+                  "top_quintile_return": 0.164807487782224,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 3.7532360091313497,
+                  "spread_t_stat_hac": 3.7532360091313497,
+                  "spread_t_stat_naive": 4.038018733883894,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.8125
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.1047571664609669,
+                  "company_count": 38,
+                  "ic_stability": 0.8461538461538461,
+                  "hit_rate": 0.5168269230769231,
+                  "top_bottom_spread": 0.3132493936069217,
+                  "group_returns": [
+                    0.057502586311988305,
+                    0.12400441613486116,
+                    0.07635673238652084,
+                    0.12066613514623037,
+                    0.37075197991890996
+                  ],
+                  "bottom_quintile_return": 0.057502586311988305,
+                  "top_quintile_return": 0.37075197991890996,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 8.717607027891937,
+                  "spread_t_stat_hac": 8.717607027891937,
+                  "spread_t_stat_naive": 6.434945383693578,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 1.0
+                }
+              }
+            },
+            {
+              "id": "cash_flow_quality",
+              "name": "Cash Flow Quality",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.07415987601503021,
+                  "company_count": 38,
+                  "ic_stability": 0.7777777777777778,
+                  "hit_rate": 0.5229793977812995,
+                  "top_bottom_spread": 0.016732796130842977,
+                  "group_returns": [
+                    0.01536609659198563,
+                    0.020947338756382185,
+                    0.029303206150707955,
+                    0.028585693783948048,
+                    0.032098892722828606
+                  ],
+                  "bottom_quintile_return": 0.01536609659198563,
+                  "top_quintile_return": 0.032098892722828606,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 1.377557688700079,
+                  "spread_t_stat_hac": 1.377557688700079,
+                  "spread_t_stat_naive": 1.3387454358640727,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6666666666666666
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.1457541339585458,
+                  "company_count": 38,
+                  "ic_stability": 0.875,
+                  "hit_rate": 0.5098743267504489,
+                  "top_bottom_spread": 0.04114546504146575,
+                  "group_returns": [
+                    0.04900052353916357,
+                    0.03474442387995187,
+                    0.10700519782284837,
+                    0.11546467326834597,
+                    0.09014598858062932
+                  ],
+                  "bottom_quintile_return": 0.04900052353916357,
+                  "top_quintile_return": 0.09014598858062932,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 1.3379905619496315,
+                  "spread_t_stat_hac": 1.3379905619496315,
+                  "spread_t_stat_naive": 1.7058850852861267,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.6875
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.2046219517388874,
+                  "company_count": 38,
+                  "ic_stability": 0.8461538461538461,
+                  "hit_rate": 0.515695067264574,
+                  "top_bottom_spread": -0.03507657340236796,
+                  "group_returns": [
+                    0.16488044194927637,
+                    -0.01904709839285835,
+                    0.13078215645893235,
+                    0.3379440488251197,
+                    0.1298038685469084
+                  ],
+                  "bottom_quintile_return": 0.16488044194927637,
+                  "top_quintile_return": 0.1298038685469084,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": -0.31126065546450704,
+                  "spread_t_stat_hac": -0.31126065546450704,
+                  "spread_t_stat_naive": -0.44192137904570616,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.6153846153846154
+                }
+              }
+            },
+            {
+              "id": "fundamental_score",
+              "name": "Full Fundamental Score",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.1085291512214016,
+                  "company_count": 38,
+                  "ic_stability": 0.8333333333333334,
+                  "hit_rate": 0.5193798449612403,
+                  "top_bottom_spread": 0.024434541230542107,
+                  "group_returns": [
+                    0.02414162324153528,
+                    -0.008311145020319292,
+                    0.023549984621538452,
+                    0.03880704566911549,
+                    0.04857616447207738
+                  ],
+                  "bottom_quintile_return": 0.02414162324153528,
+                  "top_quintile_return": 0.04857616447207738,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 1.7976949375330806,
+                  "spread_t_stat_hac": 1.7976949375330806,
+                  "spread_t_stat_naive": 1.7470454503937203,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6666666666666666
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.20340356634590984,
+                  "company_count": 38,
+                  "ic_stability": 1.0,
+                  "hit_rate": 0.5061511423550088,
+                  "top_bottom_spread": 0.1145084658449619,
+                  "group_returns": [
+                    0.05059873548859142,
+                    -0.0019801980105126505,
+                    0.09971494699371143,
+                    0.08957417287312076,
+                    0.1651072013335533
+                  ],
+                  "bottom_quintile_return": 0.05059873548859142,
+                  "top_quintile_return": 0.1651072013335533,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 4.192906483363505,
+                  "spread_t_stat_hac": 4.192906483363505,
+                  "spread_t_stat_naive": 4.741376224967731,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.875
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.23222169735243112,
+                  "company_count": 38,
+                  "ic_stability": 1.0,
+                  "hit_rate": 0.5054945054945055,
+                  "top_bottom_spread": 0.2346972917648422,
+                  "group_returns": [
+                    0.08572329706660595,
+                    0.03111633304237158,
+                    0.18070214781706476,
+                    0.14377905448055356,
+                    0.3204205888314481
+                  ],
+                  "bottom_quintile_return": 0.08572329706660595,
+                  "top_quintile_return": 0.3204205888314481,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 4.559503858712979,
+                  "spread_t_stat_hac": 4.559503858712979,
+                  "spread_t_stat_naive": 5.093101315555266,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.9230769230769231
+                }
+              }
+            }
+          ],
+          "signal_sources": [
+            {
+              "id": "fundamental_score",
+              "name": "Fundamental Score",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.1085291512214016,
+                  "company_count": 38,
+                  "ic_stability": 0.8333333333333334,
+                  "hit_rate": 0.5193798449612403,
+                  "top_bottom_spread": 0.024434541230542107,
+                  "group_returns": [
+                    0.02414162324153528,
+                    -0.008311145020319292,
+                    0.023549984621538452,
+                    0.03880704566911549,
+                    0.04857616447207738
+                  ],
+                  "bottom_quintile_return": 0.02414162324153528,
+                  "top_quintile_return": 0.04857616447207738,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 1.7976949375330806,
+                  "spread_t_stat_hac": 1.7976949375330806,
+                  "spread_t_stat_naive": 1.7470454503937203,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6666666666666666
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.20340356634590984,
+                  "company_count": 38,
+                  "ic_stability": 1.0,
+                  "hit_rate": 0.5061511423550088,
+                  "top_bottom_spread": 0.1145084658449619,
+                  "group_returns": [
+                    0.05059873548859142,
+                    -0.0019801980105126505,
+                    0.09971494699371143,
+                    0.08957417287312076,
+                    0.1651072013335533
+                  ],
+                  "bottom_quintile_return": 0.05059873548859142,
+                  "top_quintile_return": 0.1651072013335533,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 4.192906483363505,
+                  "spread_t_stat_hac": 4.192906483363505,
+                  "spread_t_stat_naive": 4.741376224967731,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.875
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.23222169735243112,
+                  "company_count": 38,
+                  "ic_stability": 1.0,
+                  "hit_rate": 0.5054945054945055,
+                  "top_bottom_spread": 0.2346972917648422,
+                  "group_returns": [
+                    0.08572329706660595,
+                    0.03111633304237158,
+                    0.18070214781706476,
+                    0.14377905448055356,
+                    0.3204205888314481
+                  ],
+                  "bottom_quintile_return": 0.08572329706660595,
+                  "top_quintile_return": 0.3204205888314481,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 4.559503858712979,
+                  "spread_t_stat_hac": 4.559503858712979,
+                  "spread_t_stat_naive": 5.093101315555266,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.9230769230769231
+                }
+              }
+            },
+            {
+              "id": "market_score",
+              "name": "Market Score",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.041814963629720946,
+                  "company_count": 38,
+                  "ic_stability": 0.5555555555555556,
+                  "hit_rate": 0.5264,
+                  "top_bottom_spread": 0.027656083020617648,
+                  "group_returns": [
+                    0.022238225066807064,
+                    0.008984172434333323,
+                    0.005631648324594988,
+                    0.03915743703747231,
+                    0.049894308087424705
+                  ],
+                  "bottom_quintile_return": 0.022238225066807064,
+                  "top_quintile_return": 0.049894308087424705,
+                  "monotonic_steps": 2,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": 1.5721125761512627,
+                  "spread_t_stat_hac": 1.5721125761512627,
+                  "spread_t_stat_naive": 1.5278188008032219,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6111111111111112
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.07186751494433846,
+                  "company_count": 38,
+                  "ic_stability": 0.625,
+                  "hit_rate": 0.5072463768115942,
+                  "top_bottom_spread": 0.1036052624901583,
+                  "group_returns": [
+                    0.04848374253796294,
+                    0.07186365210138562,
+                    0.04246968129425657,
+                    0.08197004037276297,
+                    0.15208900502812123
+                  ],
+                  "bottom_quintile_return": 0.04848374253796294,
+                  "top_quintile_return": 0.15208900502812123,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 2.1227671072459646,
+                  "spread_t_stat_hac": 2.1227671072459646,
+                  "spread_t_stat_naive": 2.241233800798901,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.625
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.05616830541887959,
+                  "company_count": 38,
+                  "ic_stability": 0.6153846153846154,
+                  "hit_rate": 0.5124153498871332,
+                  "top_bottom_spread": 0.0949910915414674,
+                  "group_returns": [
+                    0.1541749724200695,
+                    0.10800451096075671,
+                    0.11238707687446861,
+                    0.1322860248048548,
+                    0.2491660639615369
+                  ],
+                  "bottom_quintile_return": 0.1541749724200695,
+                  "top_quintile_return": 0.2491660639615369,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 0.8999442021450116,
+                  "spread_t_stat_hac": 0.8999442021450116,
+                  "spread_t_stat_naive": 1.0970610119846993,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.5384615384615384
+                }
+              }
+            },
+            {
+              "id": "stage_gap",
+              "name": "Fundamental − Market (Gap)",
+              "horizons": {
+                "20": {
+                  "sample_size": 645,
+                  "rank_ic": 0.04233041876979758,
+                  "company_count": 38,
+                  "ic_stability": 0.6111111111111112,
+                  "hit_rate": 0.5102040816326531,
+                  "top_bottom_spread": -0.00016141377688006945,
+                  "group_returns": [
+                    0.030991598656172643,
+                    0.02639861054075684,
+                    0.004934755666356195,
+                    0.03154488193432265,
+                    0.030830184879292573
+                  ],
+                  "bottom_quintile_return": 0.030991598656172643,
+                  "top_quintile_return": 0.030830184879292573,
+                  "monotonic_steps": 1,
+                  "rebalance_periods": 18,
+                  "spread_t_stat": -0.008303751429681148,
+                  "spread_t_stat_hac": -0.008303751429681148,
+                  "spread_t_stat_naive": -0.008069795855537276,
+                  "hac_lag": 0,
+                  "spread_positive_rate": 0.6111111111111112
+                },
+                "60": {
+                  "sample_size": 569,
+                  "rank_ic": 0.06324149071912916,
+                  "company_count": 38,
+                  "ic_stability": 0.5625,
+                  "hit_rate": 0.5276292335115864,
+                  "top_bottom_spread": 0.004949005292575415,
+                  "group_returns": [
+                    0.09329375263708169,
+                    0.09668717925363833,
+                    0.02090102751570922,
+                    0.08431036243447551,
+                    0.0982427579296571
+                  ],
+                  "bottom_quintile_return": 0.09329375263708169,
+                  "top_quintile_return": 0.0982427579296571,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 16,
+                  "spread_t_stat": 0.07781080191550056,
+                  "spread_t_stat_hac": 0.07781080191550056,
+                  "spread_t_stat_naive": 0.08946613015541365,
+                  "hac_lag": 2,
+                  "spread_positive_rate": 0.5625
+                },
+                "120": {
+                  "sample_size": 455,
+                  "rank_ic": 0.09631000242119248,
+                  "company_count": 38,
+                  "ic_stability": 0.5384615384615384,
+                  "hit_rate": 0.48660714285714285,
+                  "top_bottom_spread": 0.1045278428537234,
+                  "group_returns": [
+                    0.10206706424972255,
+                    0.21196718288455527,
+                    0.07738011440559779,
+                    0.1593634485222215,
+                    0.20659490710344594
+                  ],
+                  "bottom_quintile_return": 0.10206706424972255,
+                  "top_quintile_return": 0.20659490710344594,
+                  "monotonic_steps": 3,
+                  "rebalance_periods": 13,
+                  "spread_t_stat": 0.7103328490103277,
+                  "spread_t_stat_hac": 0.7103328490103277,
+                  "spread_t_stat_naive": 0.9393687087844974,
+                  "hac_lag": 5,
+                  "spread_positive_rate": 0.6923076923076923
+                }
+              }
+            }
+          ],
+          "robustness": {
+            "method": "冻结每个PIT截面的因子分位，逐一移除公司或二级产业后重新计算IC与分组收益；不重选日期、不调权重。",
+            "leave_one_company_out": {
+              "count": 38,
+              "horizon_summary": {
+                "20": {
+                  "rank_ic_min": 0.03149444801207424,
+                  "rank_ic_max": 0.05227457014056848,
+                  "spread_min": -0.005973954641180092,
+                  "spread_max": 0.0101348366833964,
+                  "most_influential_exclusion": "TSM",
+                  "most_influential_spread": 0.0101348366833964
+                },
+                "60": {
+                  "rank_ic_min": 0.039431335164547936,
+                  "rank_ic_max": 0.08146922514355735,
+                  "spread_min": -0.014261031153956182,
+                  "spread_max": 0.03309536493495906,
+                  "most_influential_exclusion": "MU",
+                  "most_influential_spread": 0.03309536493495906
+                },
+                "120": {
+                  "rank_ic_min": 0.06978592090990733,
+                  "rank_ic_max": 0.12034974915976034,
+                  "spread_min": 0.06752915760089234,
+                  "spread_max": 0.1710172366262919,
+                  "most_influential_exclusion": "INTC",
+                  "most_influential_spread": 0.1710172366262919
+                }
+              }
+            },
+            "leave_one_industry_out": {
+              "count": 18,
+              "horizon_summary": {
+                "20": {
+                  "rank_ic_min": 0.024442440089155394,
+                  "rank_ic_max": 0.05861091946530014,
+                  "spread_min": -0.010537245445782873,
+                  "spread_max": 0.01413447180137132,
+                  "most_influential_exclusion": "data_platform",
+                  "most_influential_spread": 0.01413447180137132
+                },
+                "60": {
+                  "rank_ic_min": 0.03593397498227416,
+                  "rank_ic_max": 0.09113869430368972,
+                  "spread_min": -0.03526278622206859,
+                  "spread_max": 0.03309536493495906,
+                  "most_influential_exclusion": "cloud_platform",
+                  "most_influential_spread": -0.03526278622206859
+                },
+                "120": {
+                  "rank_ic_min": 0.05332714194386792,
+                  "rank_ic_max": 0.12889759393454342,
+                  "spread_min": 0.055826959395754945,
+                  "spread_max": 0.15732075164085246,
+                  "most_influential_exclusion": "ai_compute",
+                  "most_influential_spread": 0.15732075164085246
+                }
+              }
+            }
+          },
+          "significance_method": {
+            "naive": "普通均值t值，隐含各再平衡期独立。",
+            "headline": "Newey-West/HAC均值t值；按20日再平衡频率设置20D lag 0、60D lag 2、120D lag 5，以修正重叠forward return的序列相关。"
+          },
           "factor_definition": {
             "formula": "Live Fundamental = 30%增长 + 25%增长加速 + 25%现金流质量 + 20% EPS预期修正；Market = 60% 20D + 40% 60D同层价格分位；Gap = Fundamental − Market",
             "backtest_formula": "历史PIT回测尚无EPS Revision序列，因此将其余三维重新归一为：37.5%增长 + 31.25%增长加速 + 31.25%现金流质量；FCF Margin变化按去年同财季计算。",
@@ -17592,8 +18243,8 @@
             "company_count": 38,
             "cross_section_count": 16
           },
-          "conclusion": "同层中性Gap的60日 Rank IC 为 +0.06，正向 IC 期占比 56%；Q5减Q1的60日平均超额收益为 +0.5%。",
-          "next_action": "继续扩展历史区间与公司数，加入交易成本、规模和更细行业控制；当前结果只能用于证伪或生成研究问题。",
+          "conclusion": "同层Gap的120日IC为 +0.10、Q5减Q1为 +10.5%，但HAC t值仅 +0.71；完整基本面分数同期IC为 +0.23、Q5减Q1为 +23.5%。减去市场分数后预测力反而下降，当前没有证据表明Gap提供了基本面之外的增量预测信息。",
+          "next_action": "120D方向需在更长、非重叠历史和样本外时期复验；当前结果只能用于证伪或生成研究问题。",
           "method": "每20个交易日重建横截面；历史核心分数使用Revenue YoY、Revenue增长加速度、FCF Margin及其同财季同比变化，市场分数合并20D/60D动量；主结果使用同层Gap，次日收盘入场并观察20D/60D/120D相对QQQ收益。控制版本进一步剔除P/S、20日波动率及同层共同收益。"
         },
         {

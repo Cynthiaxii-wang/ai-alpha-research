@@ -84,7 +84,32 @@ def ols_residuals(values: dict[str, float], controls: list[dict[str, float]]) ->
     }
 
 
-def fundamental_dislocation_test(features: list[dict], targets: list[dict], stages: dict[str, str]) -> dict:
+def newey_west_mean_t_stat(values: list[float], max_lag: int) -> float | None:
+    """HAC t-stat for an intercept-only mean with Bartlett kernel weights."""
+    clean = [value for value in values if value is not None and math.isfinite(value)]
+    count = len(clean)
+    if count < 2:
+        return None
+    lag = min(max(0, max_lag), count - 1)
+    average = statistics.fmean(clean)
+    residuals = [value - average for value in clean]
+    long_run_variance = sum(value * value for value in residuals) / count
+    for offset in range(1, lag + 1):
+        covariance = sum(
+            residuals[index] * residuals[index - offset]
+            for index in range(offset, count)
+        ) / count
+        long_run_variance += 2 * (1 - offset / (lag + 1)) * covariance
+    variance_of_mean = max(long_run_variance, 0.0) / count
+    return average / math.sqrt(variance_of_mean) if variance_of_mean > 0 else None
+
+
+def fundamental_dislocation_test(
+    features: list[dict],
+    targets: list[dict],
+    stages: dict[str, str],
+    industries: dict[str, str],
+) -> dict:
     """Test raw, within-stage and controlled versions of the Signal Monitor gap."""
     histories = defaultdict(list)
     momentum_by_date = defaultdict(dict)
@@ -187,10 +212,25 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
         cross_section = []
         for ticker in complete:
             target = target_map[(ticker, day)]
+            stage_fundamental_growth = stage_revenue_rank[ticker]
+            stage_growth_acceleration = stage_acceleration_rank[ticker]
+            stage_cash_flow_quality = (stage_fcf_rank[ticker] + stage_fcf_delta_rank[ticker]) / 2
+            stage_fundamental_score = (
+                0.375 * stage_fundamental_growth
+                + 0.3125 * stage_growth_acceleration
+                + 0.3125 * stage_cash_flow_quality
+            )
+            stage_market_score = 0.60 * stage_market_20_rank[ticker] + 0.40 * stage_market_60_rank[ticker]
             row = {
                 "ticker": ticker, "date": day, "stage": stages.get(ticker, "unclassified"),
+                "industry": industries.get(ticker, "unclassified"),
                 "raw_gap": raw_gap[ticker], "stage_gap": stage_gap[ticker],
                 "controlled_gap": controlled_gap.get(ticker),
+                "fundamental_growth": stage_fundamental_growth,
+                "growth_acceleration": stage_growth_acceleration,
+                "cash_flow_quality": stage_cash_flow_quality,
+                "fundamental_score": stage_fundamental_score,
+                "market_score": stage_market_score,
             }
             for horizon in (20, 60, 120):
                 row[f"ret{horizon}"] = parse_float(target.get(f"excess_return_{horizon}d"))
@@ -206,12 +246,17 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
                 value = row[f"ret{horizon}"]
                 row[f"controlled_ret{horizon}"] = value - stage_means[row["stage"]] if value is not None and row["stage"] in stage_means else None
 
-    def summarize_variant(score_key: str, controlled_return: bool = False) -> dict:
+    def summarize_variant(
+        score_key: str,
+        controlled_return: bool = False,
+        sample_rows: list[dict] | None = None,
+    ) -> dict:
+        evaluation_rows = samples if sample_rows is None else sample_rows
         date_ics = {20: [], 60: [], 120: []}
         group_values = {20: defaultdict(list), 60: defaultdict(list), 120: defaultdict(list)}
         date_spreads = {20: [], 60: [], 120: []}
         by_date = defaultdict(list)
-        for row in samples:
+        for row in evaluation_rows:
             if row.get(score_key) is not None:
                 by_date[row["date"]].append(row)
         for day, rows in sorted(by_date.items()):
@@ -238,7 +283,7 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
         horizon_results = {}
         for horizon in (20, 60, 120):
             return_key = f"controlled_ret{horizon}" if controlled_return else f"ret{horizon}"
-            mature = [row for row in samples if row.get(score_key) is not None and row.get(return_key) is not None]
+            mature = [row for row in evaluation_rows if row.get(score_key) is not None and row.get(return_key) is not None]
             ics = [value for _, value in date_ics[horizon] if value is not None]
             groups = [mean(group_values[horizon].get(group, [])) for group in range(1, 6)]
             spreads = [item["spread"] for item in date_spreads[horizon]]
@@ -246,10 +291,12 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             # its t-stat and the Q1/Q5 chart use the same aggregation rule.
             top_bottom = mean(spreads)
             spread_std = statistics.stdev(spreads) if len(spreads) >= 2 else None
-            spread_t_stat = (
+            spread_t_stat_naive = (
                 statistics.fmean(spreads) / (spread_std / math.sqrt(len(spreads)))
                 if spread_std not in (None, 0) else None
             )
+            hac_lag = max(0, math.ceil(horizon / 20) - 1)
+            spread_t_stat_hac = newey_west_mean_t_stat(spreads, hac_lag)
             monotonic_steps = sum(
                 groups[index] is not None and groups[index - 1] is not None and groups[index] >= groups[index - 1]
                 for index in range(1, 5)
@@ -262,7 +309,10 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
                 "top_bottom_spread": top_bottom, "group_returns": groups,
                 "bottom_quintile_return": groups[0], "top_quintile_return": groups[4],
                 "monotonic_steps": monotonic_steps, "rebalance_periods": len(ics),
-                "spread_t_stat": spread_t_stat,
+                "spread_t_stat": spread_t_stat_hac,
+                "spread_t_stat_hac": spread_t_stat_hac,
+                "spread_t_stat_naive": spread_t_stat_naive,
+                "hac_lag": hac_lag,
                 "spread_positive_rate": sum(value > 0 for value in spreads) / len(spreads) if spreads else None,
             }
         cumulative = 1.0
@@ -280,6 +330,70 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
         "raw_cross_chain": summarize_variant("raw_gap"),
         "within_stage": summarize_variant("stage_gap"),
         "controlled": summarize_variant("controlled_gap", controlled_return=True),
+    }
+    component_ablation = [
+        {"id": score_key, "name": name, "horizons": summarize_variant(score_key)["horizons"]}
+        for score_key, name in (
+            ("fundamental_growth", "Revenue Growth"),
+            ("growth_acceleration", "Growth Acceleration"),
+            ("cash_flow_quality", "Cash Flow Quality"),
+            ("fundamental_score", "Full Fundamental Score"),
+        )
+    ]
+    signal_sources = [
+        {"id": score_key, "name": name, "horizons": summarize_variant(score_key)["horizons"]}
+        for score_key, name in (
+            ("fundamental_score", "Fundamental Score"),
+            ("market_score", "Market Score"),
+            ("stage_gap", "Fundamental − Market (Gap)"),
+        )
+    ]
+
+    def exclusion_diagnostics(field: str) -> dict:
+        labels = sorted({row[field] for row in samples if row.get(field)})
+        rows = []
+        for label in labels:
+            excluded = [row for row in samples if row.get(field) != label]
+            rows.append({
+                "excluded": label,
+                "horizons": summarize_variant("stage_gap", sample_rows=excluded)["horizons"],
+            })
+        horizon_summary = {}
+        for horizon in (20, 60, 120):
+            key = str(horizon)
+            valid = [row for row in rows if row["horizons"][key]["rank_ic"] is not None]
+            ics = [row["horizons"][key]["rank_ic"] for row in valid]
+            spreads = [
+                row["horizons"][key]["top_bottom_spread"]
+                for row in valid
+                if row["horizons"][key]["top_bottom_spread"] is not None
+            ]
+            baseline = variants["within_stage"]["horizons"][key]
+            most_influential = max(
+                valid,
+                key=lambda row: abs(
+                    (row["horizons"][key]["top_bottom_spread"] or 0)
+                    - (baseline["top_bottom_spread"] or 0)
+                ),
+                default=None,
+            )
+            horizon_summary[key] = {
+                "rank_ic_min": min(ics) if ics else None,
+                "rank_ic_max": max(ics) if ics else None,
+                "spread_min": min(spreads) if spreads else None,
+                "spread_max": max(spreads) if spreads else None,
+                "most_influential_exclusion": most_influential["excluded"] if most_influential else None,
+                "most_influential_spread": (
+                    most_influential["horizons"][key]["top_bottom_spread"]
+                    if most_influential else None
+                ),
+            }
+        return {"count": len(labels), "horizon_summary": horizon_summary, "results": rows}
+
+    robustness = {
+        "method": "冻结每个PIT截面的因子分位，逐一移除公司或二级产业后重新计算IC与分组收益；不重选日期、不调权重。",
+        "leave_one_company_out": exclusion_diagnostics("ticker"),
+        "leave_one_industry_out": exclusion_diagnostics("industry"),
     }
     horizon_results = variants["within_stage"]["horizons"]
     primary_ic_rows = []
@@ -312,9 +426,17 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
         verdict = "Rejected"
     else:
         verdict = "Weak"
+    result_120 = horizon_results["120"]
+    fundamental_120 = next(
+        row["horizons"]["120"] for row in signal_sources if row["id"] == "fundamental_score"
+    )
     conclusion = (
-        f"同层中性Gap的60日 Rank IC 为 {rank_ic:+.2f}，正向 IC 期占比 {stability:.0%}；"
-        f"Q5减Q1的60日平均超额收益为 {primary['top_bottom_spread']:+.1%}。"
+        f"同层Gap的120日IC为 {result_120['rank_ic']:+.2f}、Q5减Q1为 "
+        f"{result_120['top_bottom_spread']:+.1%}，但HAC t值仅 "
+        f"{result_120['spread_t_stat_hac']:+.2f}；完整基本面分数同期IC为 "
+        f"{fundamental_120['rank_ic']:+.2f}、Q5减Q1为 "
+        f"{fundamental_120['top_bottom_spread']:+.1%}。减去市场分数后预测力反而下降，"
+        "当前没有证据表明Gap提供了基本面之外的增量预测信息。"
         if rank_ic is not None and stability is not None and primary["top_bottom_spread"] is not None
         else "当前成熟样本不足，暂不能判断定价错位是否具有稳定收益预测能力。"
     )
@@ -333,6 +455,13 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             {"id": "stage", "name": "同层中性Gap", "description": "基本面与价格均在上游/中游/下游内部排名", "horizons": variants["within_stage"]["horizons"]},
             {"id": "controlled", "name": "估值与波动率控制", "description": "同层Gap剔除P/S和20日波动率暴露，未来收益再做同层中性", "horizons": variants["controlled"]["horizons"]},
         ],
+        "component_ablation": component_ablation,
+        "signal_sources": signal_sources,
+        "robustness": robustness,
+        "significance_method": {
+            "naive": "普通均值t值，隐含各再平衡期独立。",
+            "headline": "Newey-West/HAC均值t值；按20日再平衡频率设置20D lag 0、60D lag 2、120D lag 5，以修正重叠forward return的序列相关。",
+        },
         "factor_definition": {
             "formula": "Live Fundamental = 30%增长 + 25%增长加速 + 25%现金流质量 + 20% EPS预期修正；Market = 60% 20D + 40% 60D同层价格分位；Gap = Fundamental − Market",
             "backtest_formula": "历史PIT回测尚无EPS Revision序列，因此将其余三维重新归一为：37.5%增长 + 31.25%增长加速 + 31.25%现金流质量；FCF Margin变化按去年同财季计算。",
@@ -347,7 +476,7 @@ def fundamental_dislocation_test(features: list[dict], targets: list[dict], stag
             "company_count": primary.get("company_count"), "cross_section_count": primary.get("rebalance_periods"),
         },
         "conclusion": conclusion,
-        "next_action": "继续扩展历史区间与公司数，加入交易成本、规模和更细行业控制；当前结果只能用于证伪或生成研究问题。",
+        "next_action": "120D方向需在更长、非重叠历史和样本外时期复验；当前结果只能用于证伪或生成研究问题。",
         "method": "每20个交易日重建横截面；历史核心分数使用Revenue YoY、Revenue增长加速度、FCF Margin及其同财季同比变化，市场分数合并20D/60D动量；主结果使用同层Gap，次日收盘入场并观察20D/60D/120D相对QQQ收益。控制版本进一步剔除P/S、20日波动率及同层共同收益。",
     }
 
@@ -934,8 +1063,10 @@ def main() -> int:
     h2 = capex_conversion_quarterly_test(quarterly, companies)
     h3 = earnings_surprise_test(features, targets)
     with (PROJECT_ROOT / "config" / "research_universe.csv").open(encoding="utf-8", newline="") as handle:
-        stages = {row["ticker"]: row.get("primary_stage") or "unclassified" for row in csv.DictReader(handle)}
-    dislocation = fundamental_dislocation_test(features, targets, stages)
+        universe_rows = list(csv.DictReader(handle))
+    stages = {row["ticker"]: row.get("primary_stage") or "unclassified" for row in universe_rows}
+    industries = {row["ticker"]: row.get("secondary_segment") or "unclassified" for row in universe_rows}
+    dislocation = fundamental_dislocation_test(features, targets, stages, industries)
     token_usage = token_usage_summary(token_rows)
     token_lead_lag = token_to_cloud_revenue_test(token_rows, quarterly, companies)
     chain_transmission = value_chain_transmission_test(quarterly, companies)

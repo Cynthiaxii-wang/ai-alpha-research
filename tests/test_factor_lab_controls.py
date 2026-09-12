@@ -3,7 +3,7 @@ import json
 import unittest
 from pathlib import Path
 
-from scripts.run_hypotheses import grouped_percentile_map, ols_residuals
+from scripts.run_hypotheses import grouped_percentile_map, newey_west_mean_t_stat, ols_residuals
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,12 +23,26 @@ class FactorLabControlTests(unittest.TestCase):
         self.assertEqual(set(residuals), set(values))
         self.assertLess(max(abs(value) for value in residuals.values()), 1e-6)
 
+    def test_newey_west_t_stat_accounts_for_positive_serial_correlation(self):
+        values = [0.01, 0.02, 0.03, 0.02, 0.01, -0.01, -0.02, -0.01, 0.01, 0.02]
+        independent = newey_west_mean_t_stat(values, 0)
+        overlapping = newey_west_mean_t_stat(values, 2)
+        self.assertIsNotNone(independent)
+        self.assertIsNotNone(overlapping)
+        self.assertLess(abs(overlapping), abs(independent))
+
     def test_public_payload_contains_explanation_controls_and_long_horizons(self):
         payload = json.loads((ROOT / "web/public/data/dashboard.json").read_text(encoding="utf-8"))
         card = payload["hypotheses"]["factor_lab"]["return_prediction"][0]
         self.assertEqual(card["primary_horizon"], "60")
         self.assertEqual(set(card["horizons"]), {"20", "60", "120"})
         self.assertEqual(len(card["control_variants"]), 3)
+        self.assertEqual(len(card["component_ablation"]), 4)
+        self.assertEqual(len(card["signal_sources"]), 3)
+        self.assertEqual(card["robustness"]["leave_one_company_out"]["count"], 38)
+        self.assertGreater(card["robustness"]["leave_one_industry_out"]["count"], 1)
+        self.assertNotIn("results", card["robustness"]["leave_one_company_out"])
+        self.assertNotIn("results", card["robustness"]["leave_one_industry_out"])
         self.assertTrue(card["factor_definition"]["mechanisms"])
         self.assertTrue(card["factor_definition"]["failure_modes"])
         self.assertTrue(card["cumulative_20d"])
@@ -39,6 +53,9 @@ class FactorLabControlTests(unittest.TestCase):
             self.assertIn("company_count", metrics)
             self.assertIn("rebalance_periods", metrics)
             self.assertIn("spread_t_stat", metrics)
+            self.assertEqual(metrics["spread_t_stat"], metrics["spread_t_stat_hac"])
+            self.assertIn("spread_t_stat_naive", metrics)
+            self.assertIn("hac_lag", metrics)
             self.assertIn("spread_positive_rate", metrics)
 
 
