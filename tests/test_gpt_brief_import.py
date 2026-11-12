@@ -122,6 +122,26 @@ def test_verified_energy_and_google_press_domains_are_primary_sources():
     assert syndicated_result["events"][0]["sourceType"] == "media"
 
 
+def test_current_official_ir_and_media_domains_are_classified():
+    official_urls = (
+        "https://group.softbank/en/event/earnings_2026q2",
+        "https://investors.coreweave.com/news/news-details/2026/example/",
+        "https://pr.tsmc.com/english/news/example",
+    )
+    for url in official_urls:
+        value = payload(events=[event(sourceUrl=url)])
+        result = MODULE.validate_and_normalize(value, datetime(2026, 9, 6, 8, 10, tzinfo=TZ))
+        assert result["events"][0]["sourceType"] == "official"
+
+    for url in (
+        "https://apnews.com/article/example",
+        "https://www.washingtonpost.com/business/2026/11/11/example/",
+    ):
+        value = payload(events=[event(sourceUrl=url)])
+        result = MODULE.validate_and_normalize(value, datetime(2026, 9, 6, 8, 10, tzinfo=TZ))
+        assert result["events"][0]["sourceType"] == "media"
+
+
 def test_event_rows_accept_official_feed_fields_without_manual_only_fields():
     row = event()
     row.pop("expectationGap")

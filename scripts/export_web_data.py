@@ -76,6 +76,40 @@ def average(values):
     return sum(clean) / len(clean) if clean else None
 
 
+def optional_json(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def build_freshness(market_as_of: str | None, daily_brief: dict) -> dict:
+    processed = PROJECT_ROOT / "data" / "processed"
+    tasks = optional_json(processed / "daily_update_state.json").get("tasks", {})
+    run_date = optional_json(processed / "daily_update_report.json").get("runDate")
+
+    def item(task_name: str, as_of_date: str | None) -> dict:
+        task = tasks.get(task_name, {}) if isinstance(tasks, dict) else {}
+        update_status = task.get("status", "unknown")
+        update_failed = update_status == "failed"
+        return {
+            "asOfDate": as_of_date,
+            "updateStatus": update_status,
+            "updateFailed": update_failed,
+            "stale": update_failed or bool(run_date and as_of_date and as_of_date < run_date),
+        }
+
+    events = item("ai_events", daily_brief.get("brief_date"))
+    if (
+        daily_brief.get("importMethod") == "manual_chatgpt_copy"
+        and run_date
+        and daily_brief.get("brief_date") == run_date
+    ):
+        events.update({"updateStatus": "ok_manual", "updateFailed": False, "stale": False})
+    return {"market": item("market_prices", market_as_of), "events": events}
+
+
 def normalize_event_brief(brief: dict) -> dict:
     """Export only the explicit v2 event clocks and source classification.
 
@@ -658,6 +692,7 @@ def main() -> int:
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "asOfDate": market_as_of,
         "marketAsOfDate": market_as_of,
+        "freshness": build_freshness(market_as_of, daily_brief),
         "fundamentalAsOfDate": max((row.get("available_date") or "" for row in latest_quarterly.values()), default=""),
         "briefGeneratedAt": daily_brief.get("generatedAt"),
         "platform": {"name": "AI Alpha Research", "version": "Framework v0.1", "benchmark": "QQQ"},

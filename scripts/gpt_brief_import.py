@@ -51,10 +51,11 @@ PRIMARY_DOMAINS = {
     "investor.apple.com", "investor.tsmc.com", "investors.micron.com",
     "investors.arista.com", "investors.palantir.com", "investors.adobe.com",
     "investors.snowflake.com", "investors.mongodb.com", "investors.datadoghq.com",
+    "group.softbank", "investors.coreweave.com", "pr.tsmc.com",
 }
 SECONDARY_DOMAINS = {
     "reuters.com", "bloomberg.com", "ft.com", "wsj.com", "cnbc.com",
-    "channelnewsasia.com",
+    "channelnewsasia.com", "apnews.com", "washingtonpost.com",
 }
 FORBIDDEN_TEXT = (
     "/Users/", "\\Users\\", ".env", "api_key", "apikey", "authorization: bearer",
@@ -242,7 +243,15 @@ def validate_and_normalize(payload: dict, imported_at: datetime | None = None) -
             "importMethod": "manual_chatgpt_copy",
         })
     normalized.sort(key=lambda row: (row["score"], row["source_published_at"]), reverse=True)
-    return {"brief_date": brief_date.isoformat(), "asOf": as_of.isoformat(), "events": normalized[:5]}
+    brief_summary = payload.get("summary")
+    if brief_summary is not None and (not isinstance(brief_summary, str) or not brief_summary.strip()):
+        raise ImportRejected("summary 必须是非空字符串")
+    return {
+        "brief_date": brief_date.isoformat(),
+        "asOf": as_of.isoformat(),
+        "summary": re.sub(r"\s+", " ", brief_summary).strip() if brief_summary else None,
+        "events": normalized[:5],
+    }
 
 
 def reject_sensitive_text(text: str) -> None:
@@ -313,8 +322,8 @@ def persist_import(text: str, normalized: dict, imported_at: datetime | None = N
     payload = {
         "status": "published", "brief_date": normalized["brief_date"], "asOf": normalized["asOf"], "eventCount": len(events),
         "verifiedCount": sum(event.get("sourceTier") == "A" for event in events),
-        "headline": f"今日识别 {len(events)} 条重要 AI 事件",
-        "summary": "事件来自人工搬运的结构化 GPT 晨报与官方订阅源；正文为研究摘要，来源等级与时间依据逐条保留。",
+        "headline": f"本期识别 {len(events)} 条重要 AI 事件",
+        "summary": normalized.get("summary") or "事件来自人工搬运的结构化 GPT 晨报与官方订阅源；正文为研究摘要，来源等级与时间依据逐条保留。",
         "scheduledTime": "08:00 Asia/Shanghai", "generatedAt": imported_at.isoformat(),
         "events": events, "importMethod": "manual_chatgpt_copy",
         "method": "结构化复制、时间窗校验、来源域名白名单、重要性阈值与 URL 去重",

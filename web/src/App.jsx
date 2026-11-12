@@ -28,6 +28,9 @@ const SEGMENT_NAMES = {
   creative_productivity_apps:'创意与生产力应用',
 }
 
+const SIGNAL_NAMES = {'Expectation risk':'Price Ahead of Fundamentals', Deteriorating:'Weak Fundamentals / Weak Price'}
+const signalName = label => SIGNAL_NAMES[label] || label
+
 const pct = (value, digits = 1) => value == null ? '—' : `${(value * 100).toFixed(digits)}%`
 const ppt = (value, digits = 1) => value == null ? '—' : `${value >= 0 ? '+' : ''}${(value * 100).toFixed(digits)}ppt`
 const num = (value, digits = 1) => value == null ? '—' : Number(value).toFixed(digits)
@@ -37,6 +40,17 @@ const dateTimeCN = value => value ? new Intl.DateTimeFormat('zh-CN', { timeZone:
 const epsSurprise = value => value == null ? '—' : Math.abs(value) > 100 ? `${value > 0 ? '>+100' : '<-100'}%*` : `${num(value)}%`
 const median = values => { const clean = values.filter(value => value != null).sort((a,b) => a-b); if (!clean.length) return null; const m = Math.floor(clean.length / 2); return clean.length % 2 ? clean[m] : (clean[m-1] + clean[m]) / 2 }
 const trendLabel = value => value === 'Accelerating' ? '加速 ↑' : value === 'Decelerating' ? '放缓 ↓' : '稳定 →'
+const freshnessBadge = item => item?.updateFailed && item?.stale ? 'UPDATE FAILED · STALE' : item?.updateFailed ? 'UPDATE FAILED' : item?.stale ? 'STALE' : item?.updateStatus === 'ok' ? 'CURRENT' : null
+const marketTemperature = (companies = []) => {
+  const usable = companies.filter(company => company.excess20d != null && company.excess60d != null)
+  const qqq20d = companies.find(company => company.benchmarkMomentum20d != null)?.benchmarkMomentum20d
+  const breadth60d = usable.length ? usable.filter(company => company.excess60d > 0).length / usable.length : .5
+  const median60d = median(usable.map(company => company.excess60d))
+  const signPoint = value => value > 0 ? 1 : value < 0 ? -1 : 0
+  const breadthPoint = value => value >= .6 ? 1 : value <= .4 ? -1 : 0
+  const score = signPoint(qqq20d) + breadthPoint(breadth60d) + signPoint(median60d)
+  return {state:score === 3 ? 'Risk-on' : score === 2 ? 'Warm' : score === -3 ? 'Risk-off' : score === -2 ? 'Cooling' : 'Neutral', drivers:[['QQQ 20D',pct(qqq20d),qqq20d],['60D breadth',pct(breadth60d,0),breadth60d-.5],['60D median excess',pct(median60d),median60d]]}
+}
 const eventSource = event => {
   const type = event.sourceType || (event.sourceTier === 'B' ? 'media' : 'official')
   return {type, label: type === 'media' ? 'Media Source' : 'Official Source', linkLabel: type === 'media' ? '查看媒体原文 ↗' : '查看官方原文 ↗'}
@@ -66,7 +80,7 @@ function Metric({ label, value, hint, className = '' }) {
 
 function SignalPill({ label }) {
   const className = label?.toLowerCase().replaceAll(' ', '-') || 'n-a'
-  return <span className={`signal-pill ${className}`}>{label || 'N/A'}</span>
+  return <span className={`signal-pill ${className}`}>{signalName(label) || 'N/A'}</span>
 }
 
 function SignalChangePill({ label }) {
@@ -91,21 +105,28 @@ function Overview({ data, openCompany }) {
   const outperformers = excessReturns.filter(value => value > 0).length
   const qqq20d = data.companies.find(company => company.benchmarkMomentum20d != null)?.benchmarkMomentum20d
   const firstQueue = data.researchQueue[0]
+  const marketFreshness = data.freshness?.market || {asOfDate:data.marketAsOfDate}
+  const eventFreshness = data.freshness?.events || {asOfDate:data.dailyBrief?.brief_date}
+  const temperature = marketTemperature(data.companies)
   return <>
     <section className={`hero-grid ${topEvent ? '' : 'no-brief'}`}>
       <div className="hero-copy">
         <span className="eyebrow">DAILY MARKET SNAPSHOT</span>
-        <div className="snapshot-title"><h2>市场与研究概览</h2><span>{data.marketAsOfDate}</span></div>
+        <div className="snapshot-title"><h2>市场与研究概览</h2><span>Dashboard generated {dateTimeCN(data.generatedAt)}</span></div>
+        <div className="freshness-strip">
+          {[['Market as of',marketFreshness],['Event as of',eventFreshness]].map(([label,item]) => { const badge=freshnessBadge(item); return <div key={label}><span>{label}</span><strong>{item?.asOfDate || '—'}</strong>{badge && <em className={item.updateFailed || item.stale ? 'is-warning' : 'is-current'}>{badge}</em>}</div> })}
+        </div>
+        <div className="market-temperature" title="Three-point rule: QQQ 20D direction, 60D positive-excess breadth, and 60D median excess direction."><div className="temperature-label"><span>MARKET TEMPERATURE</span><strong>{temperature.state}</strong><small>Rule-based indicator</small></div><div className="temperature-drivers">{temperature.drivers.map(([label,value,direction]) => <div key={label}><span>{label}</span><strong className={tone(direction)}>{value}</strong></div>)}</div></div>
         <div className="snapshot-grid">
           <Metric label="纳斯达克100基准（QQQ）" value={pct(qqq20d)} hint="过去 20 个交易日" className={tone(qqq20d)}/>
           <Metric label="跑赢基准的公司" value={`${outperformers} / ${excessReturns.length}`} hint="AI 样本公司"/>
           <Metric label="中位超额收益" value={pct(medianExcess)} className={tone(medianExcess)}/>
-          <Metric label="今日事件" value={events.length} hint="已核验重要事件"/>
+          <Metric label="本期事件" value={events.length} hint="已核验重要事件"/>
         </div>
-        {firstQueue && <button className="snapshot-focus" onClick={() => openCompany(firstQueue.ticker)}><span>首要研究对象</span><b>{firstQueue.ticker}</b><p>{firstQueue.setup}</p><strong className={tone(firstQueue.excess20d)}>{pct(firstQueue.excess20d)} vs QQQ</strong><i>↗</i></button>}
+        {firstQueue && <button className="snapshot-focus" onClick={() => openCompany(firstQueue.ticker)}><span>首要研究对象</span><b>{firstQueue.ticker}</b><p>{signalName(firstQueue.setup)}</p><strong className={tone(firstQueue.excess20d)}>{pct(firstQueue.excess20d)} vs QQQ</strong><i>↗</i></button>}
       </div>
       {topEvent && <article className="brief-card">
-        <div className="card-kicker"><span>今日核心事件</span><span className="status-tag"><b className={`source-type source-${eventSource(topEvent).type}`}>{eventSource(topEvent).label}</b>{topEvent.sourceName} · {topEvent.event_date}</span></div>
+        <div className="card-kicker"><span>本期核心事件</span><span className="status-tag"><b className={`source-type source-${eventSource(topEvent).type}`}>{eventSource(topEvent).label}</b>{topEvent.sourceName} · {topEvent.event_date}</span></div>
         <h3>{topEvent.headline}</h3>
         <p className="brief-summary">{topEvent.summary}</p>
         <div className="brief-insight"><span>投资含义</span><p>{topEvent.whatChanged}</p></div>
@@ -135,9 +156,10 @@ function Overview({ data, openCompany }) {
     </section>}
 
     {events.length > 1 && <section className="event-section">
-      <div className="panel-head event-heading"><div><span className="eyebrow">TRACEABLE EVENT INTELLIGENCE</span><h2>今日 AI 产业重要事件</h2></div><span className="subtle">Official Source / Media Source · 按重要性排序</span></div>
-      <div className="event-grid">{events.map((event, index) => <article className="event-card" key={event.id}>
-        <div className="event-top"><span className="event-rank">0{index + 1}</span><span className={`event-tier source-${eventSource(event).type}`}>{eventSource(event).label}</span></div>
+      <div className="panel-head event-heading"><div><span className="eyebrow">TRACEABLE EVENT INTELLIGENCE</span><h2>本期 AI 产业重要事件</h2></div><span className="subtle">Official Source / Media Source · 按重要性排序</span></div>
+      {data.dailyBrief.summary && <p className="event-thesis"><b>本期主线</b>{data.dailyBrief.summary}</p>}
+      <div className="event-grid">{events.slice(1).map((event, index) => <article className="event-card" key={event.id}>
+        <div className="event-top"><span className="event-rank">0{index + 2}</span><span className={`event-tier source-${eventSource(event).type}`}>{eventSource(event).label}</span></div>
         <h3>{event.headline}</h3><p className="event-summary">{event.summary}</p>
         <div className="event-impact"><span>传导逻辑</span><p>{event.whatChanged}</p></div>
         <div className="ticker-tags">{event.affectedCompanies.slice(0, 6).map(ticker => <span key={ticker}>{ticker}</span>)}</div>
@@ -304,6 +326,7 @@ function FactorLab({ hypotheses }) {
           <div className="factor-logic"><div><span>为什么可能有效？</span>{card.factor_definition.mechanisms.map(item => <p key={item}>＋ {item}</p>)}</div><div><span>为什么可能失效？</span>{card.factor_definition.failure_modes.map(item => <p key={item}>− {item}</p>)}</div></div>
           <p className="research-warning"><b>研究含义：</b>{card.experiment_id === 'R1' ? '“基本面强、价格弱”只是待检验的反常现象，不自动等于低估。只有未来收益、稳定性及控制变量检验同时支持，才能提高置信度。' : '经济逻辑只说明因子为何值得检验，不等于因子已经有效；最终判断以样本、时点、稳定性和样本外结果为准。'}</p>
         </div>}
+        {card.experiment_id === 'R1' && <p className="r1-proxy-note">R1 uses an annual filing-based fundamental proxy and should not be interpreted as direct validation of the quarterly live signal.</p>}
         {card.backtest_scope && <div className="backtest-scope"><span><small>样本区间</small><b>{card.backtest_scope.start_date} → {card.backtest_scope.end_date}</b></span><span><small>有效规模</small><b>{card.backtest_scope.company_count}家公司 · {card.backtest_scope.cross_section_count}个截面</b></span><span><small>再平衡</small><b>{card.backtest_scope.rebalance_rule}</b></span><span><small>入场规则</small><b>{card.backtest_scope.entry_rule}</b></span><span><small>基准</small><b>{card.backtest_scope.benchmark}</b></span></div>}
         <div className="factor-stat-grid">{Object.entries(metricNames).map(([key,label]) => <div key={key}><span>{label}</span><b className={key !== 'sample_size' ? tone(primary[key]) : ''}>{metricText(key, primary[key], primary)}</b></div>)}</div>
         {card.horizons && <div className="horizon-strip">{['20','60','120'].map(horizon => { const item=card.horizons[horizon]; return <div key={horizon} className={card.primary_horizon === horizon ? 'primary' : ''}><span>{horizon}D FORWARD {card.primary_horizon === horizon ? '· 主窗口' : ''}</span><b className={tone(item?.top_bottom_spread)}>Q5−Q1 {pct(item?.top_bottom_spread)}</b><small>Q5 {pct(item?.top_quintile_return)} · Q1 {pct(item?.bottom_quintile_return)} · IC {num(item?.rank_ic,3)}</small><small>HAC t {num(item?.spread_t_stat_hac ?? item?.spread_t_stat,2)} · 普通 t {num(item?.spread_t_stat_naive,2)} · lag {item?.hac_lag ?? '—'}</small></div>})}</div>}
@@ -361,7 +384,7 @@ function CompanyDrawer({ company, series, close }) {
   return <div className="drawer-backdrop" onClick={close}><aside className="drawer" onClick={e => e.stopPropagation()}>
     <button className="drawer-close" onClick={close}>×</button>
     <div className="company-hero"><div className="company-monogram large">{company.ticker.slice(0,2)}</div><div><span className="eyebrow">{STAGE_NAMES[company.primaryStage]} / {SEGMENT_NAMES[company.secondarySegment] || company.secondarySegment}</span><h1>{company.ticker}</h1><p>{company.name} · {company.focus}</p></div><SignalPill label={company.researchSetup}/></div>
-    <div className="setup-card why-card"><span className="eyebrow">WHY FLAGGED? · FUNDAMENTAL V2</span><h2>{company.researchSetup}</h2><div className="why-metrics"><span>基本面得分<b>{company.fundamentalScore == null ? '—' : `${company.fundamentalScore}/100`}</b></span><span>市场得分<b>{company.marketScore == null ? '—' : `${company.marketScore}/100`}</b></span><span>定价错位 Gap<b className={tone(company.fundamentalPriceGap)}>{company.fundamentalPriceGap == null ? '—' : `${company.fundamentalPriceGap > 0 ? '+' : ''}${company.fundamentalPriceGap}`}</b></span><span>20D excess<b className={tone(company.excess20d)}>{pct(company.excess20d)}</b></span><span>60D excess<b className={tone(company.excess60d)}>{pct(company.excess60d)}</b></span></div><div className="score-breakdown">{[['growth','增长 · 30%'],['acceleration','增长加速 · 25%'],['cash_quality','现金流质量 · 25%'],['expectations','预期修正 · 20%']].map(([key,label]) => <span key={key}><small>{label}</small><b>{company.fundamentalComponents?.[key] == null ? '—' : company.fundamentalComponents[key]}</b></span>)}<span><small>数据覆盖</small><b>{pct(company.fundamentalScoreCoverage,0)}</b></span></div><p className="why-conclusion"><b>结论</b>{company.flagConclusion}</p>{company.latestCatalyst && <div><b>今日催化</b><span>{company.latestCatalyst}</span></div>}</div>
+    <div className="setup-card why-card"><span className="eyebrow">WHY FLAGGED? · FUNDAMENTAL V2</span><h2>{signalName(company.researchSetup)}</h2><div className="why-metrics"><span>基本面得分<b>{company.fundamentalScore == null ? '—' : `${company.fundamentalScore}/100`}</b></span><span>市场得分<b>{company.marketScore == null ? '—' : `${company.marketScore}/100`}</b></span><span>定价错位 Gap<b className={tone(company.fundamentalPriceGap)}>{company.fundamentalPriceGap == null ? '—' : `${company.fundamentalPriceGap > 0 ? '+' : ''}${company.fundamentalPriceGap}`}</b></span><span>20D excess<b className={tone(company.excess20d)}>{pct(company.excess20d)}</b></span><span>60D excess<b className={tone(company.excess60d)}>{pct(company.excess60d)}</b></span></div><div className="score-breakdown">{[['growth','增长 · 30%'],['acceleration','增长加速 · 25%'],['cash_quality','现金流质量 · 25%'],['expectations','预期修正 · 20%']].map(([key,label]) => <span key={key}><small>{label}</small><b>{company.fundamentalComponents?.[key] == null ? '—' : company.fundamentalComponents[key]}</b></span>)}<span><small>数据覆盖</small><b>{pct(company.fundamentalScoreCoverage,0)}</b></span></div><p className="why-conclusion"><b>结论</b>{company.flagConclusion}</p>{company.latestCatalyst && <div><b>今日催化</b><span>{company.latestCatalyst}</span></div>}</div>
     <div className="drawer-metrics"><Metric label="Close" value={`$${num(company.close, 2)}`}/><Metric label="20D vs QQQ" value={pct(company.excess20d)} className={tone(company.excess20d)}/><Metric label={company.coreKpiLabel} value={pct(company.coreKpiValue)} className={tone(company.coreKpiValue)}/><Metric label="P/S proxy" value={num(company.priceToSales)}/></div>
     <div className="drawer-section chain-position"><div className="panel-head"><div><span className="eyebrow">VALUE-CHAIN POSITION</span><h2>产业链角色与传导关系</h2></div><span className="subtle">主环节 + 次要暴露</span></div><div className="chain-position-grid"><span>主要环节<b>{STAGE_NAMES[company.primaryStage]}</b></span><span>细分环节<b>{SEGMENT_NAMES[company.secondarySegment] || company.secondarySegment}</b></span><span>次要暴露<b>{company.secondaryExposure || '—'}</b></span><span>上游依赖<b>{company.upstreamDependencies || '—'}</b></span><span>下游客户<b>{company.downstreamCustomers || '—'}</b></span><span>财务可用日<b>{company.fundamentalAvailableDate || '—'}</b></span></div></div>
     <div className="drawer-section percentile-panel"><div className="panel-head"><div><span className="eyebrow">WITHIN-STAGE POSITION</span><h2>同层横截面分位</h2></div><span className="subtle">同层样本 {company.peerGroupSize || '—'} 家</span></div><PercentileBar label="基本面综合" value={company.fundamentalPercentile}/><PercentileBar label="相对估值吸引力" value={company.valuationPercentile}/><PercentileBar label="20D / 60D 市场综合" value={company.marketCompositePercentile}/></div>
