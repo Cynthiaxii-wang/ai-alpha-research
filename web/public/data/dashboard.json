@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-11-13T01:43:30.043894+00:00",
+    "cutoff": "2026-11-13T01:47:35.684719+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,7 +1186,7 @@
       }
     ]
   },
-  "generatedAt": "2026-11-13T01:43:30.119201+00:00",
+  "generatedAt": "2026-11-13T01:47:35.758181+00:00",
   "asOfDate": "2026-11-11",
   "marketAsOfDate": "2026-11-11",
   "freshness": {
@@ -1204,7 +1204,7 @@
     }
   },
   "fundamentalAsOfDate": "2026-11-09",
-  "briefGeneratedAt": "2026-11-13T09:42:09.071473+08:00",
+  "briefGeneratedAt": "2026-11-13T09:47:23.382227+08:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -1326,7 +1326,7 @@
       "trend": "Accelerating",
       "flagConclusion": "多维基本面和20D/60D同层价格表现均偏弱。",
       "signalChange": "Strengthening",
-      "eventCount": 2,
+      "eventCount": 1,
       "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
@@ -18461,15 +18461,18 @@
     "status": "published",
     "brief_date": "2026-11-13",
     "asOf": "2026-11-13T09:40:00+08:00",
-    "eventCount": 2,
+    "eventCount": 1,
     "verifiedCount": 1,
-    "headline": "本期识别 2 条重要 AI 事件",
+    "headline": "本期识别 1 条重要 AI 事件",
     "summary": "NVIDIA进入创始人离任后的管理层过渡期。当前首先应将其视为治理、执行连续性与风险溢价事件，而不是已经确认的GPU需求或订单拐点。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-11-13T09:42:09.071473+08:00",
+    "generatedAt": "2026-11-13T09:47:23.382227+08:00",
     "events": [
       {
         "id": "nvidia-ceo-transition-2026-11-12",
+        "supersedes": [
+          "nvidia-board-review-2026-11-11"
+        ],
         "event_date": "2026-11-12",
         "source_published_at": "2026-11-12T13:52:41+00:00",
         "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
@@ -18513,48 +18516,6 @@
         "nextCatalyst": "11月17日季度业绩、永久CEO遴选、11月18日员工会议及后续监管行动",
         "falsification": "产品路线、GPU交付、客户承诺和资本配置保持连续，且永久继任安排平稳落地",
         "verificationStatus": "primary_source_link_supplied",
-        "importMethod": "manual_chatgpt_copy"
-      },
-      {
-        "id": "nvidia-board-review-2026-11-11",
-        "event_date": "2026-11-11",
-        "source_published_at": "2026-11-11T22:30:00+00:00",
-        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
-        "type": "corporate_governance",
-        "sourceTier": "B",
-        "sourceType": "media",
-        "sourceName": "Associated Press",
-        "sourceHost": "apnews.com",
-        "sourceUrl": "https://apnews.com/article/4116755e690472eef677772ec55b856d",
-        "supportingUrls": [
-          "https://www.washingtonpost.com/business/2026/11/10/nvidia-jensen-huang-investigation-china-spy/4a250c1c-dd2e-11f1-912c-4fbb80d73f7f_story.html"
-        ],
-        "headline": "NVIDIA董事会启动独立审查，治理不确定性上升",
-        "summary": "媒体报道显示，NVIDIA董事会正就管理层相关争议开展独立审查。当前没有已作出的CEO更换决定，也没有证据表明GPU订单或产品路线因此发生实质变化，因此该事件应作为治理风险而非基本面下调处理。",
-        "whatChanged": "NVIDIA新增了与产品需求无关的管理层稳定性和治理折价变量，短期可能提高波动率，但不能直接替代订单、出货和供应链数据。",
-        "expectationGap": "市场可能快速交易管理层风险，但事件对中期现金流的影响仍缺少可验证证据。",
-        "affectedCompanies": [
-          "NVDA"
-        ],
-        "beneficiaries": [],
-        "adverselyAffected": [
-          "NVDA"
-        ],
-        "impactPath": "独立审查 → 管理层不确定性 → 风险溢价与短期波动 → 潜在战略执行影响",
-        "horizon": "即时—4Q",
-        "pricingStatus": "调查与媒体报道阶段，尚无最终治理决定",
-        "score": 67,
-        "scoreComponents": {
-          "surprise": 19,
-          "fundamental": 12,
-          "tradability": 18,
-          "breadth": 8,
-          "evidence": 10
-        },
-        "confidence": "中",
-        "nextCatalyst": "董事会调查结论、公司正式声明及下一次业绩指引",
-        "falsification": "董事会确认管理层稳定且订单、产品路线与客户关系未受影响",
-        "verificationStatus": "attributed_secondary_report",
         "importMethod": "manual_chatgpt_copy"
       }
     ],

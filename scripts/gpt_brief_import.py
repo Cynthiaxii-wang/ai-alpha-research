@@ -212,8 +212,12 @@ def validate_and_normalize(payload: dict, imported_at: datetime | None = None) -
         event_id = re.sub(r"[^a-z0-9-]+", "-", str(event.get("id") or "").lower()).strip("-")
         if not event_id:
             event_id = f"gpt-import-{event_date.isoformat()}-{index}"
+        supersedes = event.get("supersedes", [])
+        if not isinstance(supersedes, list) or any(not isinstance(item, str) or not item.strip() for item in supersedes):
+            raise ImportRejected(f"第 {index} 条事件 supersedes 必须是非空事件 ID 字符串数组")
         normalized.append({
             "id": event_id,
+            "supersedes": sorted(set(supersedes)),
             "event_date": event_date.isoformat(),
             "source_published_at": published.astimezone(timezone.utc).isoformat(),
             "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
@@ -317,6 +321,13 @@ def persist_import(text: str, normalized: dict, imported_at: datetime | None = N
         for event in existing.get("events", [])
         if isinstance(event, dict) and event.get("sourceUrl") and is_current(event)
     }
+    superseded_ids = {
+        superseded
+        for event in normalized["events"]
+        for superseded in event.get("supersedes", [])
+    }
+    for superseded_id in superseded_ids:
+        combined.pop(superseded_id, None)
     combined.update({event.get("id") or event["sourceUrl"]: event for event in normalized["events"]})
     events = sorted(combined.values(), key=lambda row: (row.get("score", 0), row.get("source_published_at", "")), reverse=True)[:5]
     payload = {

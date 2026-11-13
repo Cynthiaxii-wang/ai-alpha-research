@@ -169,6 +169,15 @@ def test_rejects_secrets_before_raw_or_public_write():
         raise AssertionError("secret-like text must be rejected")
 
 
+def test_new_event_can_supersede_an_earlier_event():
+    updated = event(id="new-event", supersedes=["old-event"])
+    result = MODULE.validate_and_normalize(
+        payload(events=[updated]),
+        datetime(2026, 9, 6, 8, 10, tzinfo=TZ),
+    )
+    assert result["events"][0]["supersedes"] == ["old-event"]
+
+
 def test_end_to_end_private_persist_without_publication():
     copied = f"{MODULE.START_MARKER}\n{json.dumps(payload(), ensure_ascii=False)}\n{MODULE.END_MARKER}"
     original = {name: getattr(MODULE, name) for name in ("ROOT", "PROCESSED_BRIEF", "IMPORT_REPORT", "UPDATE_REPORT", "write_raw_json")}
