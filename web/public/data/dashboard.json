@@ -1,7 +1,7 @@
 {
   "demandChain": {
     "version": "demand_chain_v1",
-    "cutoff": "2026-11-13T01:24:15.509789+00:00",
+    "cutoff": "2026-11-13T01:43:30.043894+00:00",
     "adoption": [
       {
         "id": "chatgpt",
@@ -1186,7 +1186,7 @@
       }
     ]
   },
-  "generatedAt": "2026-11-13T01:24:15.584689+00:00",
+  "generatedAt": "2026-11-13T01:43:30.119201+00:00",
   "asOfDate": "2026-11-11",
   "marketAsOfDate": "2026-11-11",
   "freshness": {
@@ -1197,14 +1197,14 @@
       "stale": true
     },
     "events": {
-      "asOfDate": "2026-11-12",
+      "asOfDate": "2026-11-13",
       "updateStatus": "ok_manual",
       "updateFailed": false,
       "stale": false
     }
   },
   "fundamentalAsOfDate": "2026-11-09",
-  "briefGeneratedAt": "2026-11-12T10:00:24.589988+08:00",
+  "briefGeneratedAt": "2026-11-13T09:42:09.071473+08:00",
   "platform": {
     "name": "AI Alpha Research",
     "version": "Framework v0.1",
@@ -1326,8 +1326,8 @@
       "trend": "Accelerating",
       "flagConclusion": "多维基本面和20D/60D同层价格表现均偏弱。",
       "signalChange": "Strengthening",
-      "eventCount": 4,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "eventCount": 2,
+      "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
       "ticker": "AMD",
@@ -1423,7 +1423,7 @@
       "flagConclusion": "20D/60D同层价格表现领先，但多维基本面得分尚未达到强势阈值。",
       "signalChange": "Strengthening",
       "eventCount": 1,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
       "ticker": "AVGO",
@@ -1519,7 +1519,7 @@
       "flagConclusion": "20D/60D同层价格表现领先，但多维基本面得分尚未达到强势阈值。",
       "signalChange": "Weakening",
       "eventCount": 1,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
       "ticker": "TSM",
@@ -1614,8 +1614,8 @@
       "trend": "Accelerating",
       "flagConclusion": "多维基本面和20D/60D同层价格表现均偏弱。",
       "signalChange": "Exited",
-      "eventCount": 2,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "eventCount": 1,
+      "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
       "ticker": "MU",
@@ -1710,8 +1710,8 @@
       "trend": "Accelerating",
       "flagConclusion": "增长、加速、现金流与预期综合得分较强，但20D/60D同层价格表现偏弱。",
       "signalChange": "Weakening",
-      "eventCount": 1,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "ANET",
@@ -1807,7 +1807,7 @@
       "flagConclusion": "20D/60D同层价格表现领先，但多维基本面得分尚未达到强势阈值。",
       "signalChange": "Strengthening",
       "eventCount": 1,
-      "latestCatalyst": "CoreWeave上调全年收入指引，算力需求与融资压力同时上升"
+      "latestCatalyst": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO"
     },
     {
       "ticker": "MSFT",
@@ -1902,8 +1902,8 @@
       "trend": "Decelerating",
       "flagConclusion": "20D/60D同层价格表现领先，但多维基本面得分尚未达到强势阈值。",
       "signalChange": "Weakening",
-      "eventCount": 2,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "GOOGL",
@@ -1998,8 +1998,8 @@
       "trend": "Accelerating",
       "flagConclusion": "多维基本面和20D/60D同层价格表现均偏弱。",
       "signalChange": "Unchanged",
-      "eventCount": 2,
-      "latestCatalyst": "Anthropic披露IPO发行区间，并安排260亿美元同步私募"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "AMZN",
@@ -2094,8 +2094,8 @@
       "trend": "Accelerating",
       "flagConclusion": "20D/60D同层价格表现领先，但多维基本面得分尚未达到强势阈值。",
       "signalChange": "Weakening",
-      "eventCount": 1,
-      "latestCatalyst": "TSMC批准最高10亿美元投资Anthropic与OpenAI"
+      "eventCount": 0,
+      "latestCatalyst": null
     },
     {
       "ticker": "ORCL",
@@ -15197,7 +15197,7 @@
     ]
   },
   "hypotheses": {
-    "generated_at": "2026-11-13T01:22:19.785471+00:00",
+    "generated_at": "2026-11-13T01:42:57.931913+00:00",
     "universe": [
       "NVDA",
       "AMD",
@@ -18368,7 +18368,7 @@
     }
   },
   "quality": {
-    "generated_at": "2026-11-13T01:21:45.274938+00:00",
+    "generated_at": "2026-11-13T01:42:25.254202+00:00",
     "status": "pass",
     "status_scope": "engineering_integrity_checks_only",
     "research_readiness": "exploratory_only",
@@ -18459,193 +18459,59 @@
   },
   "dailyBrief": {
     "status": "published",
-    "brief_date": "2026-11-12",
-    "asOf": "2026-11-12T09:45:00+08:00",
-    "eventCount": 5,
-    "verifiedCount": 4,
-    "headline": "本期识别 5 条重要 AI 事件",
-    "summary": "本周的核心不是单一融资规模，而是AI资本市场开始同时检验模型公司的估值、算力需求的持续性与基础设施投资回报。需求仍强，但融资成本、资产减值和治理风险正在拉开企业间差距。",
+    "brief_date": "2026-11-13",
+    "asOf": "2026-11-13T09:40:00+08:00",
+    "eventCount": 2,
+    "verifiedCount": 1,
+    "headline": "本期识别 2 条重要 AI 事件",
+    "summary": "NVIDIA进入创始人离任后的管理层过渡期。当前首先应将其视为治理、执行连续性与风险溢价事件，而不是已经确认的GPU需求或订单拐点。",
     "scheduledTime": "08:00 Asia/Shanghai",
-    "generatedAt": "2026-11-12T10:00:24.589988+08:00",
+    "generatedAt": "2026-11-13T09:42:09.071473+08:00",
     "events": [
       {
-        "id": "anthropic-ipo-price-range-2026-11-10",
-        "event_date": "2026-11-10",
-        "source_published_at": "2026-11-10T21:30:00+00:00",
+        "id": "nvidia-ceo-transition-2026-11-12",
+        "event_date": "2026-11-12",
+        "source_published_at": "2026-11-12T13:52:41+00:00",
         "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
-        "type": "ai_capital_markets",
+        "type": "corporate_governance",
         "sourceTier": "A",
         "sourceType": "official",
-        "sourceName": "Anthropic IPO Prospectus",
-        "sourceHost": "ipo.anthropic.com",
-        "sourceUrl": "https://ipo.anthropic.com/documents/us/prospectus.pdf",
-        "supportingUrls": [],
-        "headline": "Anthropic披露IPO发行区间，并安排260亿美元同步私募",
-        "summary": "Anthropic拟发行8.25亿股A类普通股，价格区间为每股70—78美元，对应基础发行最高约643.5亿美元；Google、NVIDIA、AMD、Broadcom、Micron、Microsoft与TSMC另拟在IPO完成时同步投资合计260亿美元。两部分均仍取决于交易完成，不能视为已到账资金。",
-        "whatChanged": "基础模型公司的收入质量、算力成本与现金消耗将首次接受公开市场持续定价；同时，芯片与云产业链通过同步私募形成更紧密的资本联系。",
-        "expectationGap": "市场此前主要通过大型科技公司间接定价生成式AI；独立模型公司上市将提供更直接的估值锚，但发行规模不等于净募资额。",
+        "sourceName": "NVIDIA / SEC",
+        "sourceHost": "sec.gov",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1045810/000104581026000082/nvda-20261111.htm",
+        "supportingUrls": [
+          "https://www.reuters.com/business/retail-consumer/nvidia-ceo-jensen-huang-step-down-big-blow-ai-boom-2026-11-12/"
+        ],
+        "headline": "黄仁勋辞任NVIDIA CEO，Colette Kress出任临时CEO",
+        "summary": "NVIDIA董事会宣布，黄仁勋已辞去总裁、首席执行官及董事职务，即刻生效。执行副总裁兼首席财务官Colette Kress将在保留CFO职责的同时担任临时CEO，董事会将同时考虑内部和外部正式继任人选；Harvey C. Jones获任公司首位董事长。",
+        "whatChanged": "NVIDIA从长期创始人主导进入管理层过渡期，新增战略执行连续性、客户关系维护、资本配置与继任安排的不确定性；但公司官方表示当前运营、客户承诺和产品路线预计不中断，现阶段不能据此推断GPU订单已经转弱。",
+        "expectationGap": "市场需要重新定价黄仁勋长期形成的关键人物溢价，而基本面影响仍需通过订单、交付、研发路线和客户融资政策的实际变化验证。",
         "affectedCompanies": [
           "AMD",
-          "ANTHROPIC",
+          "ANET",
           "AVGO",
-          "GOOGL",
-          "MSFT",
-          "MU",
+          "MRVL",
           "NVDA",
           "TSM"
         ],
-        "beneficiaries": [
-          "ANTHROPIC"
+        "beneficiaries": [],
+        "adverselyAffected": [
+          "NVDA"
         ],
-        "adverselyAffected": [],
-        "impactPath": "IPO定价 → 模型公司估值锚 → 算力成本与盈利要求 → 云与芯片产业链估值",
+        "impactPath": "CEO突然更替 → 治理与执行风险溢价上升 → 客户、供应链和资本配置预期调整 → 订单与现金流影响待验证",
         "horizon": "即时—8Q",
-        "pricingStatus": "发行区间已披露，交易尚未完成",
-        "score": 95,
+        "pricingStatus": "离任与临时任命已正式披露，长期经营影响尚未验证",
+        "score": 99,
         "scoreComponents": {
-          "surprise": 24,
-          "fundamental": 24,
-          "tradability": 18,
+          "surprise": 25,
+          "fundamental": 25,
+          "tradability": 20,
           "breadth": 14,
           "evidence": 15
         },
         "confidence": "高",
-        "nextCatalyst": "最终定价、发行完成及上市后首份财务披露",
-        "falsification": "IPO延期或撤回；最终发行规模显著收缩；上市后单位算力经济性未改善",
-        "verificationStatus": "primary_source_link_supplied",
-        "importMethod": "manual_chatgpt_copy"
-      },
-      {
-        "id": "coreweave-q3-2026-guidance",
-        "event_date": "2026-11-10",
-        "source_published_at": "2026-11-10T21:05:00+00:00",
-        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
-        "type": "ai_compute_earnings",
-        "sourceTier": "A",
-        "sourceType": "official",
-        "sourceName": "CoreWeave / SEC",
-        "sourceHost": "sec.gov",
-        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/1769628/000176962826000461/coreweave3q26earningspress.htm",
-        "supportingUrls": [
-          "https://investors.coreweave.com/news/news-details/2026/CoreWeave-Reports-Strong-Third-Quarter-2026-Results/"
-        ],
-        "headline": "CoreWeave上调全年收入指引，算力需求与融资压力同时上升",
-        "summary": "CoreWeave第三季度收入为36.61亿美元，并将2026年收入指引上调至130亿—133亿美元；公司预计未来三个月获得约90亿美元客户预付款及保证金。该金额是预期流入，并非已经到账现金；同期净利息支出达8.46亿美元。",
-        "whatChanged": "高收入增速和客户预付款安排继续验证AI算力需求，但高利息支出说明需求强劲与财务健康不能合并判断。",
-        "expectationGap": "收入兑现强于担忧，但融资成本和客户集中度仍可能限制权益价值转化。",
-        "affectedCompanies": [
-          "ANET",
-          "CRWV",
-          "DELL",
-          "NVDA"
-        ],
-        "beneficiaries": [
-          "CRWV",
-          "NVDA"
-        ],
-        "adverselyAffected": [],
-        "impactPath": "客户订单与预付款 → GPU云利用率 → 收入增长 → 利息与资本开支约束 → 股东回报",
-        "horizon": "1Q—8Q",
-        "pricingStatus": "财报与指引已披露，预付款尚待到账",
-        "score": 90,
-        "scoreComponents": {
-          "surprise": 21,
-          "fundamental": 24,
-          "tradability": 19,
-          "breadth": 11,
-          "evidence": 15
-        },
-        "confidence": "高",
-        "nextCatalyst": "预付款实际到账、债务再融资及下一季度收入与利息支出",
-        "falsification": "预付款延迟或取消；利用率下降；利息和资本开支增长持续快于收入",
-        "verificationStatus": "primary_source_link_supplied",
-        "importMethod": "manual_chatgpt_copy"
-      },
-      {
-        "id": "softbank-ai-infrastructure-loss-2026-11-10",
-        "event_date": "2026-11-10",
-        "source_published_at": "2026-11-10T06:30:00+00:00",
-        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
-        "type": "ai_infrastructure_financing",
-        "sourceTier": "A",
-        "sourceType": "official",
-        "sourceName": "SoftBank Group",
-        "sourceHost": "group.softbank",
-        "sourceUrl": "https://group.softbank/en/event/earnings_2026q2",
-        "supportingUrls": [],
-        "headline": "SoftBank季度转亏，AI数据中心相关设备采购调整产生重大损失",
-        "summary": "SoftBank截至9月底季度归母净亏损约1.12万亿日元。公司同时披露，上半财年因美国AI数据中心项目的发电设备采购计划调整确认37.3亿美元损失，并另对俄亥俄州相关设施确认减值。该事件是项目与资产层面的风险暴露，不能外推为整个算力行业供过于求。",
-        "whatChanged": "AI基础设施风险开始从融资讨论进入财务报表；合同约束、设备残值、项目进度与资本成本需要与需求指标并列监控。",
-        "expectationGap": "市场对AI基础设施多聚焦订单和容量，较少计入项目取消、设备专用性与融资成本对回报率的侵蚀。",
-        "affectedCompanies": [
-          "9984.T",
-          "NVDA"
-        ],
-        "beneficiaries": [],
-        "adverselyAffected": [
-          "9984.T"
-        ],
-        "impactPath": "项目调整 → 设备采购损失与资产减值 → 融资约束 → 后续AI基础设施投资回报要求提高",
-        "horizon": "即时—8Q",
-        "pricingStatus": "损失已入账，项目后续处置仍待跟踪",
-        "score": 87,
-        "scoreComponents": {
-          "surprise": 23,
-          "fundamental": 23,
-          "tradability": 16,
-          "breadth": 10,
-          "evidence": 15
-        },
-        "confidence": "高",
-        "nextCatalyst": "美国AI项目处置、设备转售或重新部署、下一季度现金流与融资成本",
-        "falsification": "设备成功转用于高回报项目并收回大部分价值；后续不再出现同类损失",
-        "verificationStatus": "primary_source_link_supplied",
-        "importMethod": "manual_chatgpt_copy"
-      },
-      {
-        "id": "tsmc-anthropic-openai-investment-2026-11-10",
-        "event_date": "2026-11-10",
-        "source_published_at": "2026-11-10T10:15:00+00:00",
-        "timeBasis": "event_date is the occurrence date; source_published_at is the source publication timestamp",
-        "type": "ai_strategic_investment",
-        "sourceTier": "A",
-        "sourceType": "official",
-        "sourceName": "TSMC Board Resolution",
-        "sourceHost": "pr.tsmc.com",
-        "sourceUrl": "https://pr.tsmc.com/system/files/newspdf/attachment/e05987700f76438755c64d950b3b0b99369aeed2/1110%20board%20meeting%20%28E%29_final_wmn.pdf",
-        "supportingUrls": [],
-        "headline": "TSMC批准最高10亿美元投资Anthropic与OpenAI",
-        "summary": "TSMC董事会批准按IPO价格投资Anthropic最高5亿美元，并认购OpenAI优先股最高5亿美元。两项均为董事会批准额度，并非已全部完成的投资。",
-        "whatChanged": "晶圆代工龙头从AI需求的设备与制造受益者，进一步成为模型公司的股权投资者，产业链资本关系加深。",
-        "expectationGap": "战略协同可能增强客户关系，但也增加上游制造企业对模型公司估值和资本循环的间接暴露。",
-        "affectedCompanies": [
-          "AMZN",
-          "ANTHROPIC",
-          "GOOGL",
-          "MSFT",
-          "OPENAI",
-          "TSM"
-        ],
-        "beneficiaries": [
-          "ANTHROPIC",
-          "OPENAI",
-          "TSM"
-        ],
-        "adverselyAffected": [],
-        "impactPath": "上游资本投入 → 模型公司扩张 → 训练与推理需求 → 先进制程与封装订单",
-        "horizon": "2Q—12Q",
-        "pricingStatus": "董事会已批准，实际交割待完成",
-        "score": 79,
-        "scoreComponents": {
-          "surprise": 18,
-          "fundamental": 18,
-          "tradability": 16,
-          "breadth": 12,
-          "evidence": 15
-        },
-        "confidence": "高",
-        "nextCatalyst": "两项投资的实际交割与TSMC后续资本配置披露",
-        "falsification": "投资未交割；模型公司算力需求未转化为TSMC先进制程与封装订单",
+        "nextCatalyst": "11月17日季度业绩、永久CEO遴选、11月18日员工会议及后续监管行动",
+        "falsification": "产品路线、GPU交付、客户承诺和资本配置保持连续，且永久继任安排平稳落地",
         "verificationStatus": "primary_source_link_supplied",
         "importMethod": "manual_chatgpt_copy"
       },
